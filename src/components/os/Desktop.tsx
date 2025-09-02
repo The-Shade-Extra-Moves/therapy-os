@@ -1,5 +1,5 @@
 
-import React, { lazy } from 'react';
+import React, { lazy, Suspense } from 'react';
 import { motion } from 'framer-motion';
 import { useWindowStore } from '@/stores/windowStore';
 import { Window } from './Window';
@@ -91,7 +91,9 @@ export const Desktop: React.FC = () => {
 
     return (
       <Window key={window.id} window={window}>
-        <AppComponent />
+        <Suspense fallback={<div className="p-6 text-sm text-muted-foreground">Loading app…</div>}>
+          <AppComponent />
+        </Suspense>
       </Window>
     );
   };
