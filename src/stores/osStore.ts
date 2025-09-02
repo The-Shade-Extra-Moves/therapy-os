@@ -20,26 +20,29 @@ export interface DesktopIcon {
 
 export interface Widget {
   id: string;
-  type: 'clock' | 'weather' | 'calendar' | 'notes' | 'system-monitor';
+  type: 'clock' | 'weather' | 'calendar' | 'notes' | 'system-monitor' | 'patient-reminders' | 'ai-insights';
   position: { x: number; y: number };
   size: { width: number; height: number };
   settings: Record<string, any>;
 }
 
 export interface WallpaperSettings {
-  type: 'gradient' | 'image' | 'color';
+  type: 'gradient' | 'image' | 'color' | 'live';
   value: string;
   opacity: number;
+  effects?: string[];
 }
 
 export interface AppearanceSettings {
-  theme: 'light' | 'dark' | 'auto';
+  theme: 'light' | 'dark' | 'auto' | 'therapy';
   wallpaper: WallpaperSettings;
   taskbarPosition: 'bottom' | 'top' | 'left' | 'right';
   taskbarSize: 'small' | 'medium' | 'large';
   iconSize: 'small' | 'medium' | 'large';
   animations: boolean;
   transparency: number;
+  accentColor?: string;
+  fontFamily?: string;
 }
 
 interface OSStore {

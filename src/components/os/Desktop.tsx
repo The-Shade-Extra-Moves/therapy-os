@@ -17,6 +17,12 @@ import { FileExplorer } from '@/components/apps/FileExplorer';
 import { DesktopIcon } from './DesktopIcon';
 import { ClockWidget } from '@/components/widgets/ClockWidget';
 import { SystemMonitorWidget } from '@/components/widgets/SystemMonitorWidget';
+import { CalendarWidget } from '@/components/widgets/CalendarWidget';
+import { PatientRemindersWidget } from '@/components/widgets/PatientRemindersWidget';
+import { AIInsightsWidget } from '@/components/widgets/AIInsightsWidget';
+import { DesktopContextMenu } from './ContextMenu';
+import { VirtualDesktops } from './VirtualDesktops';
+import { WidgetPanel } from '@/components/widgets/WidgetPanel';
 import { useOSStore } from '@/stores/osStore';
 
 const AppComponents = {
@@ -33,6 +39,18 @@ const AppComponents = {
 export const Desktop: React.FC = () => {
   const { windows } = useWindowStore();
   const { desktopIcons, widgets, clearSelection, appearance } = useOSStore();
+  const [isWidgetPanelOpen, setIsWidgetPanelOpen] = React.useState(false);
+  const [mousePos, setMousePos] = React.useState({ x: 0, y: 0 });
+
+  // Track mouse for parallax effect
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (appearance.wallpaper.value.includes('parallax')) {
+      setMousePos({
+        x: (e.clientX / window.innerWidth - 0.5) * 20,
+        y: (e.clientY / window.innerHeight - 0.5) * 20,
+      });
+    }
+  };
 
   const renderWindow = (window: any) => {
     const AppComponent = AppComponents[window.component as keyof typeof AppComponents];
@@ -58,17 +76,40 @@ export const Desktop: React.FC = () => {
     );
   };
 
-  // Apply dynamic wallpaper
+  // Apply dynamic wallpaper with effects
   const wallpaperStyle = {
     background: appearance.wallpaper.value,
     opacity: appearance.wallpaper.opacity,
+    transform: appearance.wallpaper.value.includes('parallax') 
+      ? `translate(${mousePos.x}px, ${mousePos.y}px) scale(1.1)` 
+      : 'none',
+    filter: appearance.wallpaper.value.includes('blur') ? 'blur(1px)' : 'none',
+  };
+
+  const renderWidget = (widget: any) => {
+    switch (widget.type) {
+      case 'clock':
+        return <ClockWidget />;
+      case 'system-monitor':
+        return <SystemMonitorWidget />;
+      case 'calendar':
+        return <CalendarWidget />;
+      case 'patient-reminders':
+        return <PatientRemindersWidget />;
+      case 'ai-insights':
+        return <AIInsightsWidget />;
+      default:
+        return null;
+    }
   };
 
   return (
-    <div 
-      className={`h-screen w-screen overflow-hidden relative ${appearance.theme === 'dark' ? 'dark' : ''}`}
-      style={{ background: 'hsl(var(--desktop-bg))' }}
-    >
+    <DesktopContextMenu>
+      <div 
+        className={`h-screen w-screen overflow-hidden relative ${appearance.theme === 'dark' ? 'dark' : ''}`}
+        style={{ background: 'hsl(var(--desktop-bg))' }}
+        onMouseMove={handleMouseMove}
+      >
       {/* Desktop Background with dynamic wallpaper */}
       <motion.div 
         className="absolute inset-0"
@@ -89,42 +130,20 @@ export const Desktop: React.FC = () => {
         ))}
         
         {/* Widgets */}
-        {widgets.map((widget) => {
-          switch (widget.type) {
-            case 'clock':
-              return (
-                <div 
-                  key={widget.id}
-                  className="absolute"
-                  style={{ 
-                    left: widget.position.x, 
-                    top: widget.position.y,
-                    width: widget.size.width,
-                    height: widget.size.height 
-                  }}
-                >
-                  <ClockWidget />
-                </div>
-              );
-            case 'system-monitor':
-              return (
-                <div 
-                  key={widget.id}
-                  className="absolute"
-                  style={{ 
-                    left: widget.position.x, 
-                    top: widget.position.y,
-                    width: widget.size.width,
-                    height: widget.size.height 
-                  }}
-                >
-                  <SystemMonitorWidget />
-                </div>
-              );
-            default:
-              return null;
-          }
-        })}
+        {widgets.map((widget) => (
+          <div 
+            key={widget.id}
+            className="absolute"
+            style={{ 
+              left: widget.position.x, 
+              top: widget.position.y,
+              width: widget.size.width,
+              height: widget.size.height 
+            }}
+          >
+            {renderWidget(widget)}
+          </div>
+        ))}
       </div>
 
       {/* Windows */}
@@ -138,8 +157,18 @@ export const Desktop: React.FC = () => {
         </div>
       </div>
 
-      {/* Taskbar */}
-      <Taskbar />
-    </div>
+        {/* Virtual Desktops */}
+        <VirtualDesktops />
+
+        {/* Widget Panel */}
+        <WidgetPanel 
+          isOpen={isWidgetPanelOpen} 
+          onClose={() => setIsWidgetPanelOpen(false)} 
+        />
+
+        {/* Taskbar */}
+        <Taskbar onOpenWidgets={() => setIsWidgetPanelOpen(true)} />
+      </div>
+    </DesktopContextMenu>
   );
 };

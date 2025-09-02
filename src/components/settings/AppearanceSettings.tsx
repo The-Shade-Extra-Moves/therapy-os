@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Palette, Image, Monitor, Sun, Moon, Laptop } from 'lucide-react';
+import { Palette, Image, Monitor, Sun, Moon, Laptop, Sparkles, Layers } from 'lucide-react';
 import { useOSStore } from '@/stores/osStore';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,6 +16,7 @@ const wallpaperOptions = [
     type: 'gradient' as const,
     value: 'var(--gradient-desktop)',
     preview: 'linear-gradient(135deg, hsl(220 30% 92%), hsl(220 25% 88%))',
+    effects: []
   },
   {
     id: 'gradient-ocean',
@@ -23,6 +24,7 @@ const wallpaperOptions = [
     type: 'gradient' as const,
     value: 'linear-gradient(135deg, hsl(200 70% 85%), hsl(220 60% 75%))',
     preview: 'linear-gradient(135deg, hsl(200 70% 85%), hsl(220 60% 75%))',
+    effects: ['blur', 'parallax']
   },
   {
     id: 'gradient-sunset',
@@ -30,6 +32,7 @@ const wallpaperOptions = [
     type: 'gradient' as const,
     value: 'linear-gradient(135deg, hsl(340 60% 85%), hsl(30 70% 85%))',
     preview: 'linear-gradient(135deg, hsl(340 60% 85%), hsl(30 70% 85%))',
+    effects: ['blur']
   },
   {
     id: 'gradient-forest',
@@ -37,6 +40,23 @@ const wallpaperOptions = [
     type: 'gradient' as const,
     value: 'linear-gradient(135deg, hsl(140 40% 85%), hsl(80 30% 80%))',
     preview: 'linear-gradient(135deg, hsl(140 40% 85%), hsl(80 30% 80%))',
+    effects: ['parallax']
+  },
+  {
+    id: 'gradient-aurora',
+    name: 'Aurora Dreams',
+    type: 'gradient' as const,
+    value: 'linear-gradient(135deg, hsl(270 70% 85%), hsl(180 60% 80%), hsl(320 70% 85%))',
+    preview: 'linear-gradient(135deg, hsl(270 70% 85%), hsl(180 60% 80%), hsl(320 70% 85%))',
+    effects: ['blur', 'parallax']
+  },
+  {
+    id: 'gradient-cosmic',
+    name: 'Cosmic Therapy',
+    type: 'gradient' as const,
+    value: 'linear-gradient(135deg, hsl(240 80% 15%), hsl(260 70% 25%), hsl(280 60% 35%))',
+    preview: 'linear-gradient(135deg, hsl(240 80% 15%), hsl(260 70% 25%), hsl(280 60% 35%))',
+    effects: ['blur']
   },
   {
     id: 'color-light',
@@ -44,6 +64,7 @@ const wallpaperOptions = [
     type: 'color' as const,
     value: 'hsl(220 25% 95%)',
     preview: 'hsl(220 25% 95%)',
+    effects: []
   },
   {
     id: 'color-dark',
@@ -51,13 +72,23 @@ const wallpaperOptions = [
     type: 'color' as const,
     value: 'hsl(220 25% 8%)',
     preview: 'hsl(220 25% 8%)',
+    effects: []
   },
+  {
+    id: 'live-particles',
+    name: 'Floating Particles',
+    type: 'live' as const,
+    value: 'particles',
+    preview: 'linear-gradient(135deg, hsl(220 30% 92%), hsl(220 25% 88%))',
+    effects: ['live']
+  }
 ];
 
 const themeOptions = [
-  { id: 'light', name: 'Light', icon: Sun },
-  { id: 'dark', name: 'Dark', icon: Moon },
-  { id: 'auto', name: 'Auto', icon: Laptop },
+  { id: 'light', name: 'Light', icon: Sun, description: 'Clean and bright interface' },
+  { id: 'dark', name: 'Dark', icon: Moon, description: 'Easy on the eyes' },
+  { id: 'auto', name: 'Auto', icon: Laptop, description: 'Follows system preference' },
+  { id: 'therapy', name: 'Therapy Pro', icon: Monitor, description: 'Optimized for therapy sessions' },
 ];
 
 const taskbarPositions = [
@@ -164,12 +195,38 @@ export const AppearanceSettings: React.FC = () => {
                 whileTap={{ scale: 0.98 }}
               >
                 <div
-                  className="w-full h-24 rounded-lg"
+                  className="w-full h-24 rounded-lg relative overflow-hidden"
                   style={{ background: wallpaper.preview }}
-                />
+                >
+                  {/* Effect indicators */}
+                  {wallpaper.effects && wallpaper.effects.length > 0 && (
+                    <div className="absolute top-1 right-1 flex gap-1">
+                      {wallpaper.effects.includes('blur') && (
+                        <div className="w-4 h-4 bg-primary/80 rounded-full flex items-center justify-center">
+                          <Sparkles className="w-2 h-2 text-white" />
+                        </div>
+                      )}
+                      {wallpaper.effects.includes('parallax') && (
+                        <div className="w-4 h-4 bg-secondary/80 rounded-full flex items-center justify-center">
+                          <Layers className="w-2 h-2 text-white" />
+                        </div>
+                      )}
+                      {wallpaper.effects.includes('live') && (
+                        <div className="w-4 h-4 bg-accent/80 rounded-full flex items-center justify-center">
+                          <div className="w-1 h-1 bg-white rounded-full animate-pulse" />
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
                 <div className="absolute inset-0 rounded-lg bg-black/0 hover:bg-black/10 transition-colors" />
                 <div className="p-2">
                   <p className="text-xs font-medium text-center">{wallpaper.name}</p>
+                  {wallpaper.effects && wallpaper.effects.length > 0 && (
+                    <p className="text-xs text-muted-foreground text-center">
+                      {wallpaper.effects.join(' • ')}
+                    </p>
+                  )}
                 </div>
               </motion.div>
             ))}

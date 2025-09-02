@@ -11,7 +11,8 @@ import {
   Menu,
   Clock,
   Wifi,
-  Volume2 
+  Volume2,
+  Grid3X3
 } from 'lucide-react';
 import { useWindowStore } from '@/stores/windowStore';
 import { useOSStore } from '@/stores/osStore';
@@ -26,7 +27,11 @@ const appIcons = [
   { id: 'settings', icon: Settings, label: 'Settings', component: 'Settings' },
 ];
 
-export const Taskbar: React.FC = () => {
+interface TaskbarProps {
+  onOpenWidgets?: () => void;
+}
+
+export const Taskbar: React.FC<TaskbarProps> = ({ onOpenWidgets }) => {
   const { windows, openWindow, restoreWindow, setActiveWindow } = useWindowStore();
   const { appearance } = useOSStore();
   const [isStartMenuOpen, setIsStartMenuOpen] = useState(false);
@@ -150,6 +155,18 @@ export const Taskbar: React.FC = () => {
             ? 'flex-col space-y-2' 
             : 'space-x-3'
         }`}>
+          {/* Widgets Toggle */}
+          {onOpenWidgets && (
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={onOpenWidgets}
+              className="h-8 w-8 p-0 text-foreground hover:bg-primary/20"
+            >
+              <Grid3X3 className="w-4 h-4" />
+            </Button>
+          )}
+          
           <div className="flex items-center space-x-2 text-sm text-muted-foreground">
             <Wifi className="h-4 w-4" />
             <Volume2 className="h-4 w-4" />
