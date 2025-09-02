@@ -39,6 +39,7 @@ const AppComponents = {
   SessionNotes,
   ReportEditor,
   AIAssistant,
+  Settings,
   Calendar,
   AppStore,
   ReMotionStore,
