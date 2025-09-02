@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Search, Power, Settings, User, Grid3X3, 
   Users, FileText, Brain, Calendar, Package,
-  Folder, Activity, LogOut, Lock, RotateCcw
+  Folder, Activity, LogOut, Lock, RotateCcw, Edit
 } from 'lucide-react';
 import { useOSStore } from '@/stores/osStore';
 import { useWindowStore } from '@/stores/windowStore';
@@ -24,9 +24,10 @@ interface AppItem {
 const allApps: AppItem[] = [
   { id: 'patients', name: 'Patient Manager', icon: Users, component: 'PatientManager', category: 'therapy' },
   { id: 'notes', name: 'Session Notes', icon: FileText, component: 'SessionNotes', category: 'therapy' },
+  { id: 'reports', name: 'Report Editor', icon: Edit, component: 'ReportEditor', category: 'therapy' },
   { id: 'ai', name: 'AI Assistant', icon: Brain, component: 'AIAssistant', category: 'therapy' },
   { id: 'calendar', name: 'Calendar', icon: Calendar, component: 'Calendar', category: 'productivity' },
-  { id: 'app-store', name: 'App Store', icon: Package, component: 'AppStore', category: 'system' },
+  { id: 'remotion-store', name: 'ReMotion Store', icon: Package, component: 'ReMotionStore', category: 'system' },
   { id: 'file-explorer', name: 'File Explorer', icon: Folder, component: 'FileExplorer', category: 'productivity' },
   { id: 'task-manager', name: 'Task Manager', icon: Activity, component: 'TaskManager', category: 'system' },
   { id: 'settings', name: 'Settings', icon: Settings, component: 'Settings', category: 'system' },
