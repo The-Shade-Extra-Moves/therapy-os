@@ -1,52 +1,43 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, X, Monitor } from 'lucide-react';
+import { Plus, X, Edit2, Check, Monitor } from 'lucide-react';
 import { useOSStore } from '@/stores/osStore';
-
-interface VirtualDesktop {
-  id: string;
-  name: string;
-  wallpaper: string;
-  isActive: boolean;
-}
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 export const VirtualDesktops: React.FC = () => {
-  const { appearance } = useOSStore();
-  const [desktops, setDesktops] = React.useState<VirtualDesktop[]>([
-    {
-      id: 'desktop-1',
-      name: 'Main Desktop',
-      wallpaper: 'var(--gradient-desktop)',
-      isActive: true
-    },
-    {
-      id: 'desktop-2',
-      name: 'Patients',
-      wallpaper: 'linear-gradient(135deg, hsl(200 70% 85%), hsl(220 60% 75%))',
-      isActive: false
+  const { 
+    appearance, 
+    virtualDesktops, 
+    addVirtualDesktop, 
+    removeVirtualDesktop, 
+    switchVirtualDesktop,
+    renameVirtualDesktop 
+  } = useOSStore();
+  
+  const [editingId, setEditingId] = React.useState<string | null>(null);
+  const [editName, setEditName] = React.useState('');
+
+  const handleStartEdit = (desktop: any) => {
+    setEditingId(desktop.id);
+    setEditName(desktop.name);
+  };
+
+  const handleSaveEdit = () => {
+    if (editingId && editName.trim()) {
+      renameVirtualDesktop(editingId, editName.trim());
     }
-  ]);
-
-  const addDesktop = () => {
-    const newDesktop: VirtualDesktop = {
-      id: `desktop-${Date.now()}`,
-      name: `Desktop ${desktops.length + 1}`,
-      wallpaper: 'var(--gradient-desktop)',
-      isActive: false
-    };
-    setDesktops([...desktops, newDesktop]);
+    setEditingId(null);
+    setEditName('');
   };
 
-  const removeDesktop = (id: string) => {
-    if (desktops.length <= 1) return;
-    setDesktops(desktops.filter(d => d.id !== id));
-  };
-
-  const switchDesktop = (id: string) => {
-    setDesktops(desktops.map(d => ({
-      ...d,
-      isActive: d.id === id
-    })));
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSaveEdit();
+    } else if (e.key === 'Escape') {
+      setEditingId(null);
+      setEditName('');
+    }
   };
 
   if (!appearance.animations) return null;
@@ -58,11 +49,11 @@ export const VirtualDesktops: React.FC = () => {
         animate={{ y: 0, opacity: 1 }}
         className="flex items-center gap-2 px-4 py-2 glass-surface rounded-lg"
       >
-        {desktops.map((desktop) => (
+        {virtualDesktops.map((desktop) => (
           <motion.div
             key={desktop.id}
             className={`relative group cursor-pointer`}
-            onClick={() => switchDesktop(desktop.id)}
+            onClick={() => switchVirtualDesktop(desktop.id)}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
@@ -83,16 +74,49 @@ export const VirtualDesktops: React.FC = () => {
             </div>
 
             {/* Desktop name tooltip */}
-            <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-popover text-popover-foreground text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-              {desktop.name}
+            <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-popover text-popover-foreground text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+              {editingId === desktop.id ? (
+                <div className="flex items-center gap-1">
+                  <Input
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    onKeyDown={handleKeyPress}
+                    className="w-24 h-6 px-2 text-xs"
+                    autoFocus
+                  />
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-6 w-6 p-0"
+                    onClick={handleSaveEdit}
+                  >
+                    <Check className="w-3 h-3" />
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-1">
+                  <span>{desktop.name}</span>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-4 w-4 p-0 opacity-60 hover:opacity-100"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleStartEdit(desktop);
+                    }}
+                  >
+                    <Edit2 className="w-2 h-2" />
+                  </Button>
+                </div>
+              )}
             </div>
 
             {/* Remove button */}
-            {desktops.length > 1 && (
+            {virtualDesktops.length > 1 && (
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  removeDesktop(desktop.id);
+                  removeVirtualDesktop(desktop.id);
                 }}
                 className="absolute -top-2 -right-2 w-4 h-4 bg-destructive text-destructive-foreground rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
               >
@@ -104,7 +128,7 @@ export const VirtualDesktops: React.FC = () => {
 
         {/* Add new desktop button */}
         <motion.button
-          onClick={addDesktop}
+          onClick={() => addVirtualDesktop()}
           className="w-16 h-10 border-2 border-dashed border-muted hover:border-primary/50 rounded flex items-center justify-center transition-colors"
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}

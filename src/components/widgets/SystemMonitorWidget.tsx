@@ -27,7 +27,7 @@ export const SystemMonitorWidget: React.FC = () => {
 
   return (
     <motion.div
-      className="glass-surface p-4 rounded-xl w-72 h-40"
+      className="h-full w-full p-4"
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.3 }}

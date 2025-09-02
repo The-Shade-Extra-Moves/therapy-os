@@ -34,7 +34,7 @@ export const AIInsightsWidget: React.FC = () => {
   ];
 
   return (
-    <Card className="h-full glass-surface">
+    <Card className="h-full w-full">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-base">
           <Brain className="w-4 h-4" />

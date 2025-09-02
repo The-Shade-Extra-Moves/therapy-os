@@ -23,6 +23,7 @@ import { AIInsightsWidget } from '@/components/widgets/AIInsightsWidget';
 import { DesktopContextMenu } from './ContextMenu';
 import { VirtualDesktops } from './VirtualDesktops';
 import { WidgetPanel } from '@/components/widgets/WidgetPanel';
+import { DraggableWidget } from '@/components/widgets/DraggableWidget';
 import { useOSStore } from '@/stores/osStore';
 
 const AppComponents = {
@@ -38,7 +39,7 @@ const AppComponents = {
 
 export const Desktop: React.FC = () => {
   const { windows } = useWindowStore();
-  const { desktopIcons, widgets, clearSelection, appearance } = useOSStore();
+  const { desktopIcons, widgets, clearSelection, appearance, virtualDesktops } = useOSStore();
   const [isWidgetPanelOpen, setIsWidgetPanelOpen] = React.useState(false);
   const [mousePos, setMousePos] = React.useState({ x: 0, y: 0 });
 
@@ -76,14 +77,18 @@ export const Desktop: React.FC = () => {
     );
   };
 
+  // Get current desktop wallpaper
+  const activeDesktop = virtualDesktops.find(d => d.isActive);
+  const currentWallpaper = activeDesktop?.wallpaper || appearance.wallpaper.value;
+
   // Apply dynamic wallpaper with effects
   const wallpaperStyle = {
-    background: appearance.wallpaper.value,
+    background: currentWallpaper,
     opacity: appearance.wallpaper.opacity,
-    transform: appearance.wallpaper.value.includes('parallax') 
+    transform: currentWallpaper.includes('parallax') 
       ? `translate(${mousePos.x}px, ${mousePos.y}px) scale(1.1)` 
       : 'none',
-    filter: appearance.wallpaper.value.includes('blur') ? 'blur(1px)' : 'none',
+    filter: currentWallpaper.includes('blur') ? 'blur(1px)' : 'none',
   };
 
   const renderWidget = (widget: any) => {
@@ -131,18 +136,9 @@ export const Desktop: React.FC = () => {
         
         {/* Widgets */}
         {widgets.map((widget) => (
-          <div 
-            key={widget.id}
-            className="absolute"
-            style={{ 
-              left: widget.position.x, 
-              top: widget.position.y,
-              width: widget.size.width,
-              height: widget.size.height 
-            }}
-          >
+          <DraggableWidget key={widget.id} widget={widget}>
             {renderWidget(widget)}
-          </div>
+          </DraggableWidget>
         ))}
       </div>
 

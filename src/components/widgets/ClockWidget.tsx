@@ -28,7 +28,7 @@ export const ClockWidget: React.FC = () => {
 
   return (
     <motion.div
-      className="glass-surface p-4 rounded-xl w-64 h-32"
+      className="h-full w-full p-4"
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.3 }}

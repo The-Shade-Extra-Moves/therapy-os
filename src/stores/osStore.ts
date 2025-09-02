@@ -45,6 +45,15 @@ export interface AppearanceSettings {
   fontFamily?: string;
 }
 
+export interface VirtualDesktop {
+  id: string;
+  name: string;
+  wallpaper: string;
+  isActive: boolean;
+  windows: string[];
+  widgets: string[];
+}
+
 interface OSStore {
   // Authentication
   isLoggedIn: boolean;
@@ -54,6 +63,7 @@ interface OSStore {
   desktopIcons: DesktopIcon[];
   widgets: Widget[];
   selectedIcons: string[];
+  virtualDesktops: VirtualDesktop[];
   
   // Appearance
   appearance: AppearanceSettings;
@@ -78,6 +88,12 @@ interface OSStore {
   removeWidget: (id: string) => void;
   
   updateAppearance: (settings: Partial<AppearanceSettings>) => void;
+  
+  // Virtual Desktops
+  addVirtualDesktop: (name?: string) => void;
+  removeVirtualDesktop: (id: string) => void;
+  switchVirtualDesktop: (id: string) => void;
+  renameVirtualDesktop: (id: string, name: string) => void;
   
   toggleAppStore: () => void;
   toggleTaskManager: () => void;
@@ -165,6 +181,25 @@ export const useOSStore = create<OSStore>((set, get) => ({
   
   widgets: [],
   selectedIcons: [],
+  
+  virtualDesktops: [
+    {
+      id: 'desktop-1',
+      name: 'Main Desktop',
+      wallpaper: 'var(--gradient-desktop)',
+      isActive: true,
+      windows: [],
+      widgets: []
+    },
+    {
+      id: 'desktop-2',
+      name: 'Patients',
+      wallpaper: 'linear-gradient(135deg, hsl(var(--primary) / 0.1), hsl(var(--secondary) / 0.1))',
+      isActive: false,
+      windows: [],
+      widgets: []
+    }
+  ],
   
   appearance: {
     theme: 'light',
@@ -258,6 +293,45 @@ export const useOSStore = create<OSStore>((set, get) => ({
   
   updateAppearance: (settings) => set((state) => ({
     appearance: { ...state.appearance, ...settings }
+  })),
+  
+  // Virtual Desktop Actions
+  addVirtualDesktop: (name) => set((state) => {
+    const newDesktop: VirtualDesktop = {
+      id: `desktop-${Date.now()}`,
+      name: name || `Desktop ${state.virtualDesktops.length + 1}`,
+      wallpaper: 'var(--gradient-desktop)',
+      isActive: false,
+      windows: [],
+      widgets: []
+    };
+    return { virtualDesktops: [...state.virtualDesktops, newDesktop] };
+  }),
+  
+  removeVirtualDesktop: (id) => set((state) => {
+    if (state.virtualDesktops.length <= 1) return state;
+    
+    const remainingDesktops = state.virtualDesktops.filter(d => d.id !== id);
+    const wasActive = state.virtualDesktops.find(d => d.id === id)?.isActive;
+    
+    if (wasActive && remainingDesktops.length > 0) {
+      remainingDesktops[0].isActive = true;
+    }
+    
+    return { virtualDesktops: remainingDesktops };
+  }),
+  
+  switchVirtualDesktop: (id) => set((state) => ({
+    virtualDesktops: state.virtualDesktops.map(d => ({
+      ...d,
+      isActive: d.id === id
+    }))
+  })),
+  
+  renameVirtualDesktop: (id, name) => set((state) => ({
+    virtualDesktops: state.virtualDesktops.map(d =>
+      d.id === id ? { ...d, name } : d
+    )
   })),
   
   toggleAppStore: () => set((state) => ({ isAppStoreOpen: !state.isAppStoreOpen })),
