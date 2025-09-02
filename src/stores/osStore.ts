@@ -231,6 +231,15 @@ export const useOSStore = create<OSStore>((set, get) => ({
       position: { x: 250, y: 150 },
       isSelected: false,
     },
+    {
+      id: 'app-builder',
+      name: 'App Builder',
+      icon: 'Code',
+      type: 'app',
+      component: 'AppBuilderApp',
+      position: { x: 350, y: 150 },
+      isSelected: false,
+    },
   ],
   
   widgets: [],
