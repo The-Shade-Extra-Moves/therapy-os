@@ -42,6 +42,7 @@ const AppComponents = {
   ReportEditor,
   AIAssistant,
   AIAssistantApp: lazy(() => import('../apps/AIAssistantApp')),
+  AISecretaryApp: lazy(() => import('../apps/AISecretaryApp')),
   Settings,
   Calendar,
   AppStore,

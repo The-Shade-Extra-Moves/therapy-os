@@ -151,6 +151,15 @@ export const useOSStore = create<OSStore>((set, get) => ({
       isSelected: false,
     },
     {
+      id: 'ai-secretary',
+      name: 'AI Secretary',
+      icon: 'Bot',
+      type: 'app',
+      component: 'AISecretaryApp',
+      position: { x: 450, y: 50 },
+      isSelected: false,
+    },
+    {
       id: 'calendar',
       name: 'Calendar',
       icon: 'Calendar',
