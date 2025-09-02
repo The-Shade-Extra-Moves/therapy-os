@@ -12,7 +12,10 @@ import {
   Clock,
   Wifi,
   Volume2,
-  Grid3X3
+  Grid3X3,
+  Bell,
+  Activity,
+  Folder
 } from 'lucide-react';
 import { useWindowStore } from '@/stores/windowStore';
 import { useOSStore } from '@/stores/osStore';
@@ -24,14 +27,17 @@ const appIcons = [
   { id: 'session-notes', icon: FileText, label: 'Notes', component: 'SessionNotes' },
   { id: 'ai-assistant', icon: Brain, label: 'AI Assistant', component: 'AIAssistant' },
   { id: 'calendar', icon: Calendar, label: 'Calendar', component: 'Calendar' },
+  { id: 'file-manager', icon: Folder, label: 'Files', component: 'FileManager' },
+  { id: 'task-manager', icon: Activity, label: 'Task Manager', component: 'SystemTaskManager' },
   { id: 'settings', icon: Settings, label: 'Settings', component: 'Settings' },
 ];
 
 interface TaskbarProps {
   onOpenWidgets?: () => void;
+  onOpenNotifications?: () => void;
 }
 
-export const Taskbar: React.FC<TaskbarProps> = ({ onOpenWidgets }) => {
+export const Taskbar: React.FC<TaskbarProps> = ({ onOpenWidgets, onOpenNotifications }) => {
   const { windows, openWindow, restoreWindow, setActiveWindow } = useWindowStore();
   const { appearance } = useOSStore();
   const [isStartMenuOpen, setIsStartMenuOpen] = useState(false);
@@ -164,6 +170,19 @@ export const Taskbar: React.FC<TaskbarProps> = ({ onOpenWidgets }) => {
               className="h-8 w-8 p-0 text-foreground hover:bg-primary/20"
             >
               <Grid3X3 className="w-4 h-4" />
+            </Button>
+          )}
+
+          {/* Notifications Toggle */}
+          {onOpenNotifications && (
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={onOpenNotifications}
+              className="h-8 w-8 p-0 text-foreground hover:bg-primary/20 relative"
+            >
+              <Bell className="w-4 h-4" />
+              <div className="absolute -top-1 -right-1 w-2 h-2 bg-destructive rounded-full animate-pulse" />
             </Button>
           )}
           

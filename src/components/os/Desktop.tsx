@@ -12,8 +12,13 @@ import { AIAssistant } from '@/components/apps/AIAssistant';
 import { Settings } from '@/components/apps/Settings';
 import { Calendar } from '@/components/apps/Calendar';
 import { AppStore } from '@/components/apps/AppStore';
-import { TaskManager } from '@/components/apps/TaskManager';
+import { TaskManager as TaskManagerApp } from '@/components/apps/TaskManager';
 import { FileExplorer } from '@/components/apps/FileExplorer';
+
+// OS Components
+import { TaskManager } from '@/components/os/TaskManager';
+import { NotificationCenter } from '@/components/os/NotificationCenter';
+import { VirtualFileSystem } from '@/components/os/VirtualFileSystem';
 import { DesktopIcon } from './DesktopIcon';
 import { ClockWidget } from '@/components/widgets/ClockWidget';
 import { SystemMonitorWidget } from '@/components/widgets/SystemMonitorWidget';
@@ -24,6 +29,7 @@ import { DesktopContextMenu } from './ContextMenu';
 import { VirtualDesktops } from './VirtualDesktops';
 import { WidgetPanel } from '@/components/widgets/WidgetPanel';
 import { DraggableWidget } from '@/components/widgets/DraggableWidget';
+import { AccessibilityPanel } from './AccessibilityPanel';
 import { useOSStore } from '@/stores/osStore';
 
 const AppComponents = {
@@ -33,14 +39,18 @@ const AppComponents = {
   Settings,
   Calendar,
   AppStore,
-  TaskManager,
+  TaskManager: TaskManagerApp,
   FileExplorer,
+  SystemTaskManager: TaskManager,
+  FileManager: VirtualFileSystem,
+  AccessibilityPanel: AccessibilityPanel,
 };
 
 export const Desktop: React.FC = () => {
   const { windows } = useWindowStore();
   const { desktopIcons, widgets, clearSelection, appearance, virtualDesktops } = useOSStore();
   const [isWidgetPanelOpen, setIsWidgetPanelOpen] = React.useState(false);
+  const [isNotificationCenterOpen, setIsNotificationCenterOpen] = React.useState(false);
   const [mousePos, setMousePos] = React.useState({ x: 0, y: 0 });
 
   // Track mouse for parallax effect
@@ -162,8 +172,17 @@ export const Desktop: React.FC = () => {
           onClose={() => setIsWidgetPanelOpen(false)} 
         />
 
+        {/* Notification Center */}
+        <NotificationCenter 
+          isOpen={isNotificationCenterOpen} 
+          onClose={() => setIsNotificationCenterOpen(false)} 
+        />
+
         {/* Taskbar */}
-        <Taskbar onOpenWidgets={() => setIsWidgetPanelOpen(true)} />
+        <Taskbar 
+          onOpenWidgets={() => setIsWidgetPanelOpen(true)}
+          onOpenNotifications={() => setIsNotificationCenterOpen(true)}
+        />
       </div>
     </DesktopContextMenu>
   );
