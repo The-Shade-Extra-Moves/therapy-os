@@ -240,6 +240,15 @@ export const useOSStore = create<OSStore>((set, get) => ({
       position: { x: 350, y: 150 },
       isSelected: false,
     },
+    {
+      id: 'therapy-builder',
+      name: 'Therapy Builder',
+      icon: 'Heart',
+      type: 'app',
+      component: 'TherapyAppBuilder',
+      position: { x: 450, y: 150 },
+      isSelected: false,
+    },
   ],
   
   widgets: [],

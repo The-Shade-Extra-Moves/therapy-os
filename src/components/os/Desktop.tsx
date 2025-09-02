@@ -44,6 +44,7 @@ const AppComponents = {
   AIAssistantApp: lazy(() => import('../apps/AIAssistantApp')),
   AISecretaryApp: lazy(() => import('../apps/AISecretaryApp')),
   AppBuilderApp: lazy(() => import('../apps/AppBuilderApp')),
+  TherapyAppBuilder: lazy(() => import('../apps/TherapyAppBuilder')),
   Settings,
   Calendar,
   AppStore,
