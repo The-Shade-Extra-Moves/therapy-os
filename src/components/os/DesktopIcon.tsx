@@ -26,7 +26,7 @@ interface DesktopIconProps {
 }
 
 export const DesktopIcon: React.FC<DesktopIconProps> = ({ icon }) => {
-  const { updateIconPosition, selectIcon, clearSelection } = useOSStore();
+  const { updateIconPosition, selectIcon, clearSelection, appearance } = useOSStore();
   const { openWindow } = useWindowStore();
   
   const IconComponent = iconMap[icon.icon as keyof typeof iconMap] || Package;
@@ -54,7 +54,12 @@ export const DesktopIcon: React.FC<DesktopIconProps> = ({ icon }) => {
     }
   };
 
-  const iconSize = 64; // Medium size
+  const iconSizes = {
+    small: 48,
+    medium: 64,
+    large: 80
+  };
+  const iconSize = iconSizes[appearance.iconSize];
 
   return (
     <Rnd
@@ -73,11 +78,11 @@ export const DesktopIcon: React.FC<DesktopIconProps> = ({ icon }) => {
         }`}
         onClick={handleClick}
         onDoubleClick={handleDoubleClick}
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        initial={{ opacity: 0, scale: 0.8 }}
+        whileHover={appearance.animations ? { scale: 1.05 } : {}}
+        whileTap={appearance.animations ? { scale: 0.95 } : {}}
+        initial={appearance.animations ? { opacity: 0, scale: 0.8 } : { opacity: 1, scale: 1 }}
         animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.2 }}
+        transition={{ duration: appearance.animations ? 0.2 : 0 }}
       >
         <div className="p-3 rounded-xl bg-white/20 backdrop-blur-sm border border-white/30 mb-2">
           <IconComponent 

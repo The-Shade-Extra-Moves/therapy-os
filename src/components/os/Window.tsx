@@ -3,6 +3,7 @@ import { Rnd } from 'react-rnd';
 import { motion } from 'framer-motion';
 import { Minus, Square, X, Maximize2, Minimize2 } from 'lucide-react';
 import { useWindowStore, WindowState } from '@/stores/windowStore';
+import { useOSStore } from '@/stores/osStore';
 import { Button } from '@/components/ui/button';
 
 interface WindowProps {
@@ -19,6 +20,7 @@ export const Window: React.FC<WindowProps> = ({ window, children }) => {
     updateWindowPosition,
     updateWindowSize 
   } = useWindowStore();
+  const { appearance } = useOSStore();
 
   const handleDragStop = (e: any, d: any) => {
     updateWindowPosition(window.id, { x: d.x, y: d.y });
@@ -45,10 +47,10 @@ export const Window: React.FC<WindowProps> = ({ window, children }) => {
 
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.9 }}
+      initial={appearance.animations ? { opacity: 0, scale: 0.9 } : { opacity: 1, scale: 1 }}
       animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.9 }}
-      transition={{ duration: 0.2 }}
+      exit={appearance.animations ? { opacity: 0, scale: 0.9 } : { opacity: 1, scale: 1 }}
+      transition={{ duration: appearance.animations ? 0.2 : 0 }}
       style={{ zIndex: window.isActive ? 9999 : window.zIndex }}
     >
       <Rnd
@@ -64,6 +66,10 @@ export const Window: React.FC<WindowProps> = ({ window, children }) => {
           glass-window rounded-xl overflow-hidden
           ${window.isActive ? 'ring-2 ring-primary/50' : ''}
         `}
+        style={{
+          background: `hsl(var(--window-bg) / ${appearance.transparency})`,
+          backdropFilter: `blur(${appearance.transparency * 25}px)`
+        }}
         dragHandleClassName="window-header"
         onClick={() => setActiveWindow(window.id)}
       >

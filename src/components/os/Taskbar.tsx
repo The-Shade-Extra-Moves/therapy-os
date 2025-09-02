@@ -14,6 +14,7 @@ import {
   Volume2 
 } from 'lucide-react';
 import { useWindowStore } from '@/stores/windowStore';
+import { useOSStore } from '@/stores/osStore';
 import { Button } from '@/components/ui/button';
 import { StartMenu } from './StartMenu';
 
@@ -27,6 +28,7 @@ const appIcons = [
 
 export const Taskbar: React.FC = () => {
   const { windows, openWindow, restoreWindow, setActiveWindow } = useWindowStore();
+  const { appearance } = useOSStore();
   const [isStartMenuOpen, setIsStartMenuOpen] = useState(false);
   const currentTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
@@ -59,16 +61,45 @@ export const Taskbar: React.FC = () => {
     setIsStartMenuOpen(false);
   };
 
+  // Dynamic taskbar styling based on appearance settings
+  const getTaskbarClasses = () => {
+    const baseClasses = "fixed glass-surface border-glass-border/50 z-50";
+    const sizeClasses = {
+      small: "h-12",
+      medium: "h-16", 
+      large: "h-20"
+    };
+    const positionClasses = {
+      bottom: "bottom-0 left-0 right-0 border-t flex items-center justify-between",
+      top: "top-0 left-0 right-0 border-b flex items-center justify-between",
+      left: "left-0 top-0 bottom-0 w-16 border-r flex flex-col items-center justify-start py-4",
+      right: "right-0 top-0 bottom-0 w-16 border-l flex flex-col items-center justify-start py-4"
+    };
+    
+    return `${baseClasses} ${sizeClasses[appearance.taskbarSize]} ${positionClasses[appearance.taskbarPosition]}`;
+  };
+
   return (
     <>
       <motion.div 
-        className="fixed bottom-0 left-0 right-0 h-16 glass-surface border-t border-glass-border/50 flex items-center justify-between px-4 z-50"
-        initial={{ y: 100 }}
-        animate={{ y: 0 }}
-        transition={{ duration: 0.3 }}
+        className={`${getTaskbarClasses()} px-4`}
+        initial={{ 
+          y: appearance.taskbarPosition === 'bottom' ? 100 : appearance.taskbarPosition === 'top' ? -100 : 0, 
+          x: appearance.taskbarPosition === 'left' ? -100 : appearance.taskbarPosition === 'right' ? 100 : 0 
+        }}
+        animate={{ y: 0, x: 0 }}
+        transition={{ duration: appearance.animations ? 0.3 : 0 }}
+        style={{ 
+          background: `hsl(var(--taskbar-bg) / ${appearance.transparency})`,
+          backdropFilter: `blur(${appearance.transparency * 20}px)`
+        }}
       >
         {/* Start Menu Button */}
-        <div className="flex items-center space-x-3">
+        <div className={`flex items-center ${
+          appearance.taskbarPosition === 'left' || appearance.taskbarPosition === 'right' 
+            ? 'flex-col space-y-2' 
+            : 'space-x-3'
+        }`}>
           <Button
             variant="ghost"
             size="sm"
@@ -82,7 +113,11 @@ export const Taskbar: React.FC = () => {
         </div>
 
         {/* App Icons */}
-        <div className="flex items-center space-x-2">
+        <div className={`flex items-center ${
+          appearance.taskbarPosition === 'left' || appearance.taskbarPosition === 'right' 
+            ? 'flex-col space-y-2' 
+            : 'space-x-2'
+        }`}>
           {appIcons.map((app) => {
             const isOpen = windows.some(w => w.component === app.component && !w.isMinimized);
             const isActive = windows.some(w => w.component === app.component && w.isActive);
@@ -110,7 +145,11 @@ export const Taskbar: React.FC = () => {
         </div>
 
         {/* System Tray */}
-        <div className="flex items-center space-x-3">
+        <div className={`flex items-center ${
+          appearance.taskbarPosition === 'left' || appearance.taskbarPosition === 'right' 
+            ? 'flex-col space-y-2' 
+            : 'space-x-3'
+        }`}>
           <div className="flex items-center space-x-2 text-sm text-muted-foreground">
             <Wifi className="h-4 w-4" />
             <Volume2 className="h-4 w-4" />

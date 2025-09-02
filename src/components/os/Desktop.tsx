@@ -32,7 +32,7 @@ const AppComponents = {
 
 export const Desktop: React.FC = () => {
   const { windows } = useWindowStore();
-  const { desktopIcons, widgets, clearSelection } = useOSStore();
+  const { desktopIcons, widgets, clearSelection, appearance } = useOSStore();
 
   const renderWindow = (window: any) => {
     const AppComponent = AppComponents[window.component as keyof typeof AppComponents];
@@ -58,13 +58,23 @@ export const Desktop: React.FC = () => {
     );
   };
 
+  // Apply dynamic wallpaper
+  const wallpaperStyle = {
+    background: appearance.wallpaper.value,
+    opacity: appearance.wallpaper.opacity,
+  };
+
   return (
-    <div className="h-screen w-screen overflow-hidden bg-gradient-desktop relative">
-      {/* Desktop Background */}
+    <div 
+      className={`h-screen w-screen overflow-hidden relative ${appearance.theme === 'dark' ? 'dark' : ''}`}
+      style={{ background: 'hsl(var(--desktop-bg))' }}
+    >
+      {/* Desktop Background with dynamic wallpaper */}
       <motion.div 
-        className="absolute inset-0 bg-gradient-desktop"
+        className="absolute inset-0"
+        style={wallpaperStyle}
         initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
+        animate={{ opacity: appearance.wallpaper.opacity }}
         transition={{ duration: 0.5 }}
       />
 
