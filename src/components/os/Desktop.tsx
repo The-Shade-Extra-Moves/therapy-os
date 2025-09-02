@@ -12,7 +12,7 @@ import { AIAssistant } from '@/components/apps/AIAssistant';
 import { Settings } from '@/components/apps/Settings';
 import { Calendar } from '@/components/apps/Calendar';
 import { AppStore } from '@/components/apps/AppStore';
-import { ReMotionStore } from '@/components/apps/ReMotionStore';
+import ReMotionStore from '@/components/apps/ReMotionStore';
 import { ReportEditor } from '@/components/apps/ReportEditor';
 import { TaskManager as TaskManagerApp } from '@/components/apps/TaskManager';
 import { FileExplorer } from '@/components/apps/FileExplorer';
