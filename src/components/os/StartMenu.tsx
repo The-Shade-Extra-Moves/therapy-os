@@ -4,7 +4,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Search, Power, Settings, User, Grid3X3, 
   Users, FileText, Brain, Calendar, Package,
-  Folder, Activity, LogOut, Lock, RotateCcw, Edit
+  Folder, Activity, LogOut, Lock, RotateCcw, Edit,
+  Contact, Video
 } from 'lucide-react';
 import { useOSStore } from '@/stores/osStore';
 import { useWindowStore } from '@/stores/windowStore';
@@ -26,6 +27,8 @@ const allApps: AppItem[] = [
   { id: 'notes', name: 'Session Notes', icon: FileText, component: 'SessionNotes', category: 'therapy' },
   { id: 'reports', name: 'Report Editor', icon: Edit, component: 'ReportEditor', category: 'therapy' },
   { id: 'ai', name: 'AI Assistant', icon: Brain, component: 'AIAssistant', category: 'therapy' },
+  { id: 'contacts', name: 'Contact Manager', icon: Contact, component: 'ContactManager', category: 'therapy' },
+  { id: 'meeting', name: 'Meeting Hub', icon: Video, component: 'MeetingApp', category: 'therapy' },
   { id: 'calendar', name: 'Calendar', icon: Calendar, component: 'Calendar', category: 'productivity' },
   { id: 'remotion-store', name: 'ReMotion Store', icon: Package, component: 'ReMotionStore', category: 'system' },
   { id: 'file-explorer', name: 'File Explorer', icon: Folder, component: 'FileExplorer', category: 'productivity' },
