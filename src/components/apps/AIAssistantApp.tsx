@@ -167,7 +167,7 @@ export const AIAssistantApp: React.FC = () => {
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   // Get active chat tab
-  const activeTab = chatTabs.find(tab => tab.id === activeTabId) || chatTabs[0];
+  const activeTab = chatTabs.find(tab => tab.id === activeTabId) ?? chatTabs[0] ?? null;
 
   // Auto-scroll to bottom of chat
   useEffect(() => {
@@ -338,6 +338,10 @@ export const AIAssistantApp: React.FC = () => {
 
   // Export chat
   const handleExportChat = useCallback(() => {
+    if (!activeTab) {
+      toast.error("No active chat to export");
+      return;
+    }
     const chatData = {
       id: activeTab.id,
       name: activeTab.name,
@@ -439,10 +443,29 @@ export const AIAssistantApp: React.FC = () => {
                 variant="ghost"
                 size="sm"
                 className="ml-1 h-4 w-4 p-0"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setChatTabs(prev => prev.filter(t => t.id !== tab.id));
-                }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setChatTabs(prev => {
+                      const idx = prev.findIndex(t => t.id === tab.id);
+                      const newTabs = prev.filter(t => t.id !== tab.id);
+                      if (newTabs.length === 0) {
+                        const newTab: ChatTab = {
+                          id: Date.now().toString(),
+                          name: 'New Chat',
+                          model: selectedModel,
+                          active: true,
+                          messages: [],
+                          context: 'New therapy session'
+                        };
+                        setActiveTabId(newTab.id);
+                        return [newTab];
+                      } else {
+                        const next = newTabs[Math.max(0, idx - 1)];
+                        setActiveTabId(next.id);
+                        return newTabs;
+                      }
+                    });
+                  }}
               >
                 <X className="h-3 w-3" />
               </Button>
@@ -798,7 +821,7 @@ export const AIAssistantApp: React.FC = () => {
           {/* Chat Messages */}
           <ScrollArea className="flex-1 p-4">
             <div className="max-w-4xl mx-auto">
-              {activeTab?.messages.length === 0 ? (
+              {(activeTab?.messages?.length ?? 0) === 0 ? (
                 <div className="text-center py-12">
                   <Bot className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
                   <h3 className="text-lg font-semibold mb-2">Welcome to AI Assistant</h3>
@@ -818,7 +841,7 @@ export const AIAssistantApp: React.FC = () => {
                 </div>
               ) : (
                 <>
-                  {activeTab.messages.map(renderMessage)}
+                  {(activeTab?.messages ?? []).map(renderMessage)}
                   {isProcessing && (
                     <div className="flex justify-start mb-4">
                       <div className="flex items-center space-x-3">
