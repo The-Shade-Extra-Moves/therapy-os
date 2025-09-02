@@ -1,130 +1,191 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Menu, Grid3X3, Search, Maximize2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { 
+  Settings, 
+  User, 
+  Brain, 
+  FileText, 
+  Users, 
+  Calendar,
+  Menu,
+  Clock,
+  Wifi,
+  Volume2,
+  Grid3X3
+} from 'lucide-react';
 import { useWindowStore } from '@/stores/windowStore';
 import { useOSStore } from '@/stores/osStore';
+import { Button } from '@/components/ui/button';
 import { StartMenu } from './StartMenu';
-import { SystemTray } from './SystemTray';
+
+const appIcons = [
+  { id: 'patient-manager', icon: Users, label: 'Patients', component: 'PatientManager' },
+  { id: 'session-notes', icon: FileText, label: 'Notes', component: 'SessionNotes' },
+  { id: 'ai-assistant', icon: Brain, label: 'AI Assistant', component: 'AIAssistant' },
+  { id: 'calendar', icon: Calendar, label: 'Calendar', component: 'Calendar' },
+  { id: 'settings', icon: Settings, label: 'Settings', component: 'Settings' },
+];
 
 interface TaskbarProps {
   onOpenWidgets?: () => void;
 }
 
 export const Taskbar: React.FC<TaskbarProps> = ({ onOpenWidgets }) => {
-  const { windows } = useWindowStore();
+  const { windows, openWindow, restoreWindow, setActiveWindow } = useWindowStore();
   const { appearance } = useOSStore();
-  const [isStartMenuOpen, setIsStartMenuOpen] = React.useState(false);
+  const [isStartMenuOpen, setIsStartMenuOpen] = useState(false);
+  const currentTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-  const getAppIcon = (component: string) => {
-    const iconMap: Record<string, React.ComponentType<any>> = {
-      PatientManager: () => <div className="w-5 h-5 bg-blue-500 rounded" />,
-      SessionNotes: () => <div className="w-5 h-5 bg-green-500 rounded" />,
-      AIAssistant: () => <div className="w-5 h-5 bg-purple-500 rounded" />,
-      Settings: () => <div className="w-5 h-5 bg-gray-500 rounded" />,
-      Calendar: () => <div className="w-5 h-5 bg-red-500 rounded" />,
-      AppStore: () => <div className="w-5 h-5 bg-indigo-500 rounded" />,
-      TaskManager: () => <div className="w-5 h-5 bg-orange-500 rounded" />,
-      FileExplorer: () => <div className="w-5 h-5 bg-yellow-500 rounded" />,
+  const handleAppClick = (app: typeof appIcons[0]) => {
+    const existingWindow = windows.find(w => w.component === app.component);
+    
+    if (existingWindow) {
+      if (existingWindow.isMinimized) {
+        restoreWindow(existingWindow.id);
+      } else {
+        setActiveWindow(existingWindow.id);
+      }
+    } else {
+      openWindow({
+        title: app.label,
+        component: app.component,
+        isMinimized: false,
+        isMaximized: false,
+        position: { x: 100 + Math.random() * 200, y: 100 + Math.random() * 200 },
+        size: { width: 800, height: 600 },
+      });
+    }
+  };
+
+  const toggleStartMenu = () => {
+    setIsStartMenuOpen(!isStartMenuOpen);
+  };
+
+  const closeStartMenu = () => {
+    setIsStartMenuOpen(false);
+  };
+
+  // Dynamic taskbar styling based on appearance settings
+  const getTaskbarClasses = () => {
+    const baseClasses = "fixed glass-surface border-glass-border/50 z-50";
+    const sizeClasses = {
+      small: "h-12",
+      medium: "h-16", 
+      large: "h-20"
+    };
+    const positionClasses = {
+      bottom: "bottom-0 left-0 right-0 border-t flex items-center justify-between",
+      top: "top-0 left-0 right-0 border-b flex items-center justify-between",
+      left: "left-0 top-0 bottom-0 w-16 border-r flex flex-col items-center justify-start py-4",
+      right: "right-0 top-0 bottom-0 w-16 border-l flex flex-col items-center justify-start py-4"
     };
     
-    const IconComponent = iconMap[component] || (() => <div className="w-5 h-5 bg-gray-400 rounded" />);
-    return <IconComponent />;
+    return `${baseClasses} ${sizeClasses[appearance.taskbarSize]} ${positionClasses[appearance.taskbarPosition]}`;
   };
 
   return (
     <>
-      <motion.div
-        className={`fixed ${appearance.taskbarPosition === 'bottom' ? 'bottom-0' : 'top-0'} left-0 right-0 h-12 glass-surface border-t border-border/20 flex items-center justify-between px-2 z-40`}
-        initial={{ y: appearance.taskbarPosition === 'bottom' ? 100 : -100 }}
-        animate={{ y: 0 }}
-        transition={{ duration: 0.3, ease: "easeOut" }}
+      <motion.div 
+        className={`${getTaskbarClasses()} px-4`}
+        initial={{ 
+          y: appearance.taskbarPosition === 'bottom' ? 100 : appearance.taskbarPosition === 'top' ? -100 : 0, 
+          x: appearance.taskbarPosition === 'left' ? -100 : appearance.taskbarPosition === 'right' ? 100 : 0 
+        }}
+        animate={{ y: 0, x: 0 }}
+        transition={{ duration: appearance.animations ? 0.3 : 0 }}
+        style={{ 
+          background: `hsl(var(--taskbar-bg) / ${appearance.transparency})`,
+          backdropFilter: `blur(${appearance.transparency * 20}px)`
+        }}
       >
-        {/* Left Section - Start Menu */}
-        <div className="flex items-center gap-2">
+        {/* Start Menu Button */}
+        <div className={`flex items-center ${
+          appearance.taskbarPosition === 'left' || appearance.taskbarPosition === 'right' 
+            ? 'flex-col space-y-2' 
+            : 'space-x-3'
+        }`}>
           <Button
             variant="ghost"
             size="sm"
-            className="h-8 px-3 hover:bg-muted/20 transition-colors"
-            onClick={() => setIsStartMenuOpen(!isStartMenuOpen)}
+            className={`h-10 w-10 p-0 hover:bg-primary/10 hover:text-primary ${
+              isStartMenuOpen ? 'bg-primary/20 text-primary' : ''
+            }`}
+            onClick={toggleStartMenu}
           >
-            <Menu className="h-4 w-4 mr-2" />
-            <span className="hidden sm:block text-sm font-medium">Start</span>
-          </Button>
-
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-8 px-3 hover:bg-muted/20 transition-colors"
-            onClick={() => {/* TODO: Global search */}}
-          >
-            <Search className="h-4 w-4" />
+            <Menu className="h-5 w-5" />
           </Button>
         </div>
 
-        {/* Center Section - Running Apps */}
-        <div className="flex items-center gap-1 flex-1 justify-center max-w-2xl">
-          {windows.map((window) => (
-            <motion.div
-              key={window.id}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <Button
-                variant="ghost"
-                size="sm"
-                className={`h-8 px-3 gap-2 hover:bg-muted/20 transition-colors ${
-                  !window.isMinimized ? 'bg-muted/30' : ''
-                }`}
-                onClick={() => {
-                  // Focus or restore window
-                  console.log('Focus window:', window.id);
-                }}
-              >
-                {getAppIcon(window.component)}
-                <span className="hidden md:block text-xs max-w-20 truncate">
-                  {window.title}
-                </span>
-                {!window.isMinimized && (
-                  <div className="w-1 h-1 bg-primary rounded-full" />
-                )}
-              </Button>
-            </motion.div>
-          ))}
+        {/* App Icons */}
+        <div className={`flex items-center ${
+          appearance.taskbarPosition === 'left' || appearance.taskbarPosition === 'right' 
+            ? 'flex-col space-y-2' 
+            : 'space-x-2'
+        }`}>
+          {appIcons.map((app) => {
+            const isOpen = windows.some(w => w.component === app.component && !w.isMinimized);
+            const isActive = windows.some(w => w.component === app.component && w.isActive);
+            
+            return (
+              <motion.div key={app.id} whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleAppClick(app)}
+                  className={`
+                    h-12 w-12 p-0 relative
+                    ${isActive ? 'bg-primary/20 text-primary' : 'hover:bg-glass-surface/50'}
+                    ${isOpen ? 'ring-2 ring-primary/30' : ''}
+                  `}
+                >
+                  <app.icon className="h-5 w-5" />
+                  {isOpen && (
+                    <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-primary rounded-full" />
+                  )}
+                </Button>
+              </motion.div>
+            );
+          })}
         </div>
 
-        {/* Right Section - System Tray */}
-        <div className="flex items-center gap-2">
+        {/* System Tray */}
+        <div className={`flex items-center ${
+          appearance.taskbarPosition === 'left' || appearance.taskbarPosition === 'right' 
+            ? 'flex-col space-y-2' 
+            : 'space-x-3'
+        }`}>
+          {/* Widgets Toggle */}
           {onOpenWidgets && (
-            <Button
-              variant="ghost"
+            <Button 
+              variant="ghost" 
               size="sm"
-              className="h-8 px-3 hover:bg-muted/20 transition-colors"
               onClick={onOpenWidgets}
+              className="h-8 w-8 p-0 text-foreground hover:bg-primary/20"
             >
-              <Grid3X3 className="h-4 w-4" />
+              <Grid3X3 className="w-4 h-4" />
             </Button>
           )}
-
+          
+          <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+            <Wifi className="h-4 w-4" />
+            <Volume2 className="h-4 w-4" />
+            <Clock className="h-4 w-4" />
+            <span className="text-xs font-medium">{currentTime}</span>
+          </div>
+          
           <Button
             variant="ghost"
             size="sm"
-            className="h-8 px-3 hover:bg-muted/20 transition-colors"
-            onClick={() => {/* TODO: Show desktop */}}
+            className="h-8 w-8 p-0 rounded-full hover:bg-glass-surface/50"
           >
-            <Maximize2 className="h-4 w-4" />
+            <User className="h-4 w-4" />
           </Button>
-
-          <SystemTray />
         </div>
       </motion.div>
 
       {/* Start Menu */}
-      <StartMenu 
-        isOpen={isStartMenuOpen} 
-        onClose={() => setIsStartMenuOpen(false)} 
-      />
+      <StartMenu isOpen={isStartMenuOpen} onClose={closeStartMenu} />
     </>
   );
 };
