@@ -2,7 +2,14 @@ import React from 'react';
 import { Desktop } from '@/components/os/Desktop';
 
 const Index = () => {
-  return <Desktop />;
+  const { isLoggedIn } = useOSStore();
+  
+  return (
+    <>
+      {!isLoggedIn && <LoginScreen />}
+      <Desktop />
+    </>
+  );
 };
 
 export default Index;

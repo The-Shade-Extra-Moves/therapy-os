@@ -10,6 +10,13 @@ import { SessionNotes } from '@/components/apps/SessionNotes';
 import { AIAssistant } from '@/components/apps/AIAssistant';
 import { Settings } from '@/components/apps/Settings';
 import { Calendar } from '@/components/apps/Calendar';
+import { AppStore } from '@/components/apps/AppStore';
+import { TaskManager } from '@/components/apps/TaskManager';
+import { FileExplorer } from '@/components/apps/FileExplorer';
+import { DesktopIcon } from './DesktopIcon';
+import { ClockWidget } from '@/components/widgets/ClockWidget';
+import { SystemMonitorWidget } from '@/components/widgets/SystemMonitorWidget';
+import { useOSStore } from '@/stores/osStore';
 
 const AppComponents = {
   PatientManager,
@@ -17,10 +24,14 @@ const AppComponents = {
   AIAssistant,
   Settings,
   Calendar,
+  AppStore,
+  TaskManager,
+  FileExplorer,
 };
 
 export const Desktop: React.FC = () => {
   const { windows } = useWindowStore();
+  const { desktopIcons, widgets, clearSelection } = useOSStore();
 
   const renderWindow = (window: any) => {
     const AppComponent = AppComponents[window.component as keyof typeof AppComponents];
@@ -47,15 +58,52 @@ export const Desktop: React.FC = () => {
       />
 
       {/* Desktop Icons Area */}
-      <div className="absolute inset-0 p-8 pb-20">
-        <motion.div 
-          className="grid grid-cols-1 gap-6 w-fit"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-        >
-          {/* Desktop shortcuts can be added here */}
-        </motion.div>
+      <div 
+        className="absolute inset-0 p-8 pb-20"
+        onClick={clearSelection}
+      >
+        {/* Desktop Icons */}
+        {desktopIcons.map((icon) => (
+          <DesktopIcon key={icon.id} icon={icon} />
+        ))}
+        
+        {/* Widgets */}
+        {widgets.map((widget) => {
+          switch (widget.type) {
+            case 'clock':
+              return (
+                <div 
+                  key={widget.id}
+                  className="absolute"
+                  style={{ 
+                    left: widget.position.x, 
+                    top: widget.position.y,
+                    width: widget.size.width,
+                    height: widget.size.height 
+                  }}
+                >
+                  <ClockWidget />
+                </div>
+              );
+            case 'system-monitor':
+              return (
+                <div 
+                  key={widget.id}
+                  className="absolute"
+                  style={{ 
+                    left: widget.position.x, 
+                    top: widget.position.y,
+                    width: widget.size.width,
+                    height: widget.size.height 
+                  }}
+                >
+                  <SystemMonitorWidget />
+                </div>
+              );
+            default:
+              return null;
+          }
+        })}
       </div>
 
       {/* Windows */}
