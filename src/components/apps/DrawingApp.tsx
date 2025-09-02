@@ -132,9 +132,13 @@ export const DrawingApp: React.FC = () => {
       backgroundColor: '#ffffff',
     });
 
-    // Initialize drawing brushes
-    canvas.freeDrawingBrush.color = activeColor;
-    canvas.freeDrawingBrush.width = brushSize;
+    // Initialize drawing brushes safely
+    // Enable drawing mode for pen/brush/eraser tools so freeDrawingBrush exists
+    canvas.isDrawingMode = activeTool === 'pen' || activeTool === 'brush' || activeTool === 'eraser';
+    if ((canvas as any).freeDrawingBrush) {
+      (canvas as any).freeDrawingBrush.color = activeTool === 'eraser' ? '#ffffff' : activeColor;
+      (canvas as any).freeDrawingBrush.width = brushSize;
+    }
 
     setFabricCanvas(canvas);
     toast.success("Canvas ready! Start creating!");
