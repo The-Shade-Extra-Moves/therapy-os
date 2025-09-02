@@ -1,159 +1,133 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Roboto:wght@300;400;500;700&family=SF+Pro+Display:wght@300;400;500;600;700&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* ReMotionOS Design System - Therapy-focused colors with glassmorphism effects */
-
 @layer base {
   :root {
-    /* Core Background & Surface Colors */
-    --background: 220 25% 97%;
-    --foreground: 220 20% 15%;
-
-    /* Glass Effect Surfaces */
-    --glass-surface: 220 40% 98%;
-    --glass-border: 220 30% 85%;
-    --glass-shadow: 220 15% 60%;
-
-    /* Card & Container Colors */
-    --card: 220 30% 96%;
-    --card-foreground: 220 20% 20%;
-
-    --popover: 220 35% 98%;
-    --popover-foreground: 220 20% 15%;
-
-    /* Primary - Calming Therapy Blue */
-    --primary: 213 85% 60%;
-    --primary-light: 213 85% 75%;
-    --primary-dark: 213 85% 45%;
-    --primary-foreground: 220 25% 98%;
-
-    /* Secondary - Healing Green */
-    --secondary: 158 75% 55%;
-    --secondary-light: 158 75% 70%;
-    --secondary-dark: 158 75% 40%;
-    --secondary-foreground: 158 15% 15%;
-
-    /* Accent - Creative Purple */
-    --accent: 260 75% 65%;
-    --accent-light: 260 75% 80%;
-    --accent-dark: 260 75% 50%;
-    --accent-foreground: 260 15% 98%;
-
-    /* Muted & Subtle Colors */
-    --muted: 220 20% 94%;
-    --muted-foreground: 220 15% 55%;
-
-    /* Destructive - Soft Warning Red */
-    --destructive: 0 75% 65%;
-    --destructive-foreground: 0 10% 98%;
-
-    /* Interactive Elements */
-    --border: 220 25% 88%;
-    --input: 220 25% 92%;
-    --ring: 213 85% 60%;
-
-    /* Desktop Environment Colors */
-    --desktop-bg: 220 30% 92%;
-    --taskbar-bg: 220 40% 98%;
-    --window-bg: 220 35% 98%;
-    --window-border: 220 30% 85%;
-    
-    /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(213 85% 60%), hsl(213 85% 75%));
-    --gradient-secondary: linear-gradient(135deg, hsl(158 75% 55%), hsl(158 75% 70%));
-    --gradient-accent: linear-gradient(135deg, hsl(260 75% 65%), hsl(260 75% 80%));
-    --gradient-glass: linear-gradient(135deg, hsl(220 40% 98% / 0.8), hsl(220 30% 95% / 0.6));
-    --gradient-desktop: linear-gradient(135deg, hsl(220 30% 92%), hsl(220 25% 88%));
-
-    /* Shadows & Effects */
-    --shadow-sm: 0 2px 4px hsl(220 15% 60% / 0.1);
-    --shadow-md: 0 4px 12px hsl(220 15% 60% / 0.15);
-    --shadow-lg: 0 8px 25px hsl(220 15% 60% / 0.2);
-    --shadow-glass: 0 8px 32px hsl(220 15% 60% / 0.12);
-    --shadow-window: 0 12px 40px hsl(220 15% 60% / 0.25);
-
-    /* Animation Durations */
-    --duration-fast: 0.15s;
-    --duration-normal: 0.3s;
-    --duration-slow: 0.5s;
-
-    /* Border Radius */
+    /* Professional Color System */
+    --background: 220 15% 97%;
+    --foreground: 220 15% 12%;
+    --muted: 220 10% 95%;
+    --muted-foreground: 220 8% 45%;
+    --popover: 220 15% 98%;
+    --popover-foreground: 220 15% 12%;
+    --card: 220 15% 99%;
+    --card-foreground: 220 15% 12%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --primary: 220 83% 53%;
+    --primary-foreground: 220 15% 99%;
+    --secondary: 220 10% 94%;
+    --secondary-foreground: 220 15% 12%;
+    --accent: 220 14% 93%;
+    --accent-foreground: 220 15% 12%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 220 15% 99%;
+    --ring: 220 83% 53%;
     --radius: 0.75rem;
 
+    /* ReMotionOS Specific Colors */
+    --desktop-bg: 220 15% 96%;
+    --taskbar-bg: 220 15% 98%;
+    --window-bg: 220 15% 99%;
+    --widget-bg: 220 15% 98%;
+    --glass-bg: 220 15% 98%;
+    --shadow-color: 220 15% 12%;
+    --accent-blue: 217 91% 60%;
+    --accent-purple: 262 83% 58%;
+    --accent-green: 142 76% 36%;
+    --accent-orange: 25 95% 53%;
+    
+    /* Professional Gradients */
+    --gradient-desktop: linear-gradient(135deg, hsl(220, 15%, 97%), hsl(220, 13%, 94%));
+    --gradient-primary: linear-gradient(135deg, hsl(220, 83%, 53%), hsl(217, 91%, 60%));
+    --gradient-secondary: linear-gradient(135deg, hsl(220, 10%, 94%), hsl(220, 13%, 91%));
+    --gradient-glass: linear-gradient(135deg, hsl(220, 15%, 98%) 0%, hsl(220, 13%, 96%) 100%);
+    --gradient-widget: linear-gradient(145deg, hsl(220, 15%, 99%), hsl(220, 13%, 96%));
+    
+    /* Professional Shadows */
+    --shadow-sm: 0 1px 2px 0 hsl(220, 15%, 12%, 0.05);
+    --shadow: 0 1px 3px 0 hsl(220, 15%, 12%, 0.1), 0 1px 2px -1px hsl(220, 15%, 12%, 0.1);
+    --shadow-md: 0 4px 6px -1px hsl(220, 15%, 12%, 0.1), 0 2px 4px -2px hsl(220, 15%, 12%, 0.1);
+    --shadow-lg: 0 10px 15px -3px hsl(220, 15%, 12%, 0.1), 0 4px 6px -4px hsl(220, 15%, 12%, 0.1);
+    --shadow-xl: 0 20px 25px -5px hsl(220, 15%, 12%, 0.1), 0 8px 10px -6px hsl(220, 15%, 12%, 0.1);
+    --shadow-window: 0 25px 50px -12px hsl(220, 15%, 12%, 0.25);
+    --shadow-glow: 0 0 40px hsl(220, 83%, 53%, 0.3);
+    
+    /* Typography Scale */
+    --font-family-sans: 'Inter', 'Roboto', system-ui, -apple-system, sans-serif;
+    --font-family-display: 'SF Pro Display', 'Inter', system-ui, sans-serif;
+    --font-family-mono: 'Roboto Mono', 'Courier New', monospace;
+    
+    /* Spacing Scale */
+    --spacing-xs: 0.25rem;
+    --spacing-sm: 0.5rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 1.5rem;
+    --spacing-xl: 2rem;
+    --spacing-2xl: 3rem;
+    
+    /* Animation Timing */
+    --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-normal: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-slow: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
     --sidebar-background: 0 0% 98%;
-
     --sidebar-foreground: 240 5.3% 26.1%;
-
     --sidebar-primary: 240 5.9% 10%;
-
     --sidebar-primary-foreground: 0 0% 98%;
-
     --sidebar-accent: 240 4.8% 95.9%;
-
     --sidebar-accent-foreground: 240 5.9% 10%;
-
     --sidebar-border: 220 13% 91%;
-
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
   .dark {
-    /* Dark Theme for ReMotionOS */
-    --background: 220 25% 8%;
-    --foreground: 220 15% 92%;
-
-    --glass-surface: 220 25% 12%;
-    --glass-border: 220 20% 25%;
-    --glass-shadow: 220 15% 5%;
-
-    --card: 220 20% 12%;
+    --background: 220 15% 7%;
+    --foreground: 220 15% 88%;
+    --muted: 220 10% 10%;
+    --muted-foreground: 220 8% 55%;
+    --popover: 220 15% 8%;
+    --popover-foreground: 220 15% 88%;
+    --card: 220 15% 9%;
     --card-foreground: 220 15% 88%;
+    --border: 220 13% 14%;
+    --input: 220 13% 14%;
+    --primary: 220 83% 63%;
+    --primary-foreground: 220 15% 7%;
+    --secondary: 220 10% 12%;
+    --secondary-foreground: 220 15% 88%;
+    --accent: 220 14% 13%;
+    --accent-foreground: 220 15% 88%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 220 15% 88%;
+    --ring: 220 83% 63%;
 
-    --popover: 220 25% 10%;
-    --popover-foreground: 220 15% 92%;
-
-    --primary: 213 85% 70%;
-    --primary-light: 213 85% 85%;
-    --primary-dark: 213 85% 55%;
-    --primary-foreground: 220 25% 8%;
-
-    --secondary: 158 75% 65%;
-    --secondary-light: 158 75% 80%;
-    --secondary-dark: 158 75% 50%;
-    --secondary-foreground: 158 15% 8%;
-
-    --accent: 260 75% 75%;
-    --accent-light: 260 75% 90%;
-    --accent-dark: 260 75% 60%;
-    --accent-foreground: 260 15% 8%;
-
-    --muted: 220 15% 15%;
-    --muted-foreground: 220 15% 65%;
-
-    --destructive: 0 75% 70%;
-    --destructive-foreground: 0 10% 8%;
-
-    --border: 220 20% 22%;
-    --input: 220 20% 18%;
-    --ring: 213 85% 70%;
-
-    --desktop-bg: 220 25% 10%;
-    --taskbar-bg: 220 25% 12%;
-    --window-bg: 220 20% 12%;
-    --window-border: 220 20% 25%;
-
-    --gradient-primary: linear-gradient(135deg, hsl(213 85% 70%), hsl(213 85% 85%));
-    --gradient-secondary: linear-gradient(135deg, hsl(158 75% 65%), hsl(158 75% 80%));
-    --gradient-accent: linear-gradient(135deg, hsl(260 75% 75%), hsl(260 75% 90%));
-    --gradient-glass: linear-gradient(135deg, hsl(220 25% 12% / 0.8), hsl(220 20% 15% / 0.6));
-    --gradient-desktop: linear-gradient(135deg, hsl(220 25% 10%), hsl(220 20% 8%));
-
-    --shadow-sm: 0 2px 4px hsl(220 15% 5% / 0.2);
-    --shadow-md: 0 4px 12px hsl(220 15% 5% / 0.3);
-    --shadow-lg: 0 8px 25px hsl(220 15% 5% / 0.4);
-    --shadow-glass: 0 8px 32px hsl(220 15% 5% / 0.25);
-    --shadow-window: 0 12px 40px hsl(220 15% 5% / 0.5);
+    /* Dark Theme ReMotionOS Colors */
+    --desktop-bg: 220 15% 6%;
+    --taskbar-bg: 220 15% 8%;
+    --window-bg: 220 15% 9%;
+    --widget-bg: 220 15% 8%;
+    --glass-bg: 220 15% 8%;
+    --shadow-color: 220 15% 2%;
+    
+    /* Dark Gradients */
+    --gradient-desktop: linear-gradient(135deg, hsl(220, 15%, 7%), hsl(220, 13%, 10%));
+    --gradient-primary: linear-gradient(135deg, hsl(220, 83%, 63%), hsl(217, 91%, 70%));
+    --gradient-secondary: linear-gradient(135deg, hsl(220, 10%, 12%), hsl(220, 13%, 14%));
+    --gradient-glass: linear-gradient(135deg, hsl(220, 15%, 8%) 0%, hsl(220, 13%, 10%) 100%);
+    --gradient-widget: linear-gradient(145deg, hsl(220, 15%, 9%), hsl(220, 13%, 11%));
+    
+    /* Dark Shadows */
+    --shadow-sm: 0 1px 2px 0 hsl(220, 15%, 2%, 0.3);
+    --shadow: 0 1px 3px 0 hsl(220, 15%, 2%, 0.4), 0 1px 2px -1px hsl(220, 15%, 2%, 0.4);
+    --shadow-md: 0 4px 6px -1px hsl(220, 15%, 2%, 0.4), 0 2px 4px -2px hsl(220, 15%, 2%, 0.4);
+    --shadow-lg: 0 10px 15px -3px hsl(220, 15%, 2%, 0.4), 0 4px 6px -4px hsl(220, 15%, 2%, 0.4);
+    --shadow-xl: 0 20px 25px -5px hsl(220, 15%, 2%, 0.4), 0 8px 10px -6px hsl(220, 15%, 2%, 0.4);
+    --shadow-window: 0 25px 50px -12px hsl(220, 15%, 2%, 0.6);
+    --shadow-glow: 0 0 40px hsl(220, 83%, 63%, 0.4);
 
     --sidebar-background: 220 25% 10%;
     --sidebar-foreground: 220 15% 88%;
@@ -164,94 +138,139 @@
     --sidebar-border: 220 20% 22%;
     --sidebar-ring: 213 85% 70%;
   }
-}
 
-@layer base {
+  /* Windows 11 Theme */
+  .theme-windows {
+    --radius: 0.5rem;
+    --gradient-desktop: linear-gradient(135deg, hsl(210, 100%, 98%), hsl(210, 40%, 95%));
+    --gradient-glass: linear-gradient(135deg, hsla(210, 100%, 100%, 0.8), hsla(210, 40%, 98%, 0.9));
+    --taskbar-bg: 210 20% 12%;
+    --window-bg: 210 20% 99%;
+  }
+
+  /* macOS Theme */
+  .theme-macos {
+    --radius: 0.75rem;
+    --gradient-desktop: linear-gradient(135deg, hsl(220, 20%, 96%), hsl(220, 15%, 92%));
+    --gradient-glass: linear-gradient(135deg, hsla(220, 20%, 100%, 0.7), hsla(220, 15%, 96%, 0.85));
+    --taskbar-bg: 220 15% 18%;
+    --window-bg: 220 15% 99%;
+    --shadow-window: 0 25px 50px -12px hsl(220, 15%, 12%, 0.15);
+  }
+
+  /* Therapy Theme */
+  .theme-therapy {
+    --primary: 142 76% 36%;
+    --accent-green: 142 76% 36%;
+    --gradient-desktop: linear-gradient(135deg, hsl(142, 50%, 97%), hsl(142, 30%, 94%));
+    --gradient-primary: linear-gradient(135deg, hsl(142, 76%, 36%), hsl(142, 60%, 45%));
+    --gradient-glass: linear-gradient(135deg, hsla(142, 50%, 98%, 0.9), hsla(142, 30%, 96%, 0.95));
+  }
+
   * {
-    @apply border-border;
+    border-color: hsl(var(--border));
   }
 
   body {
-    @apply bg-background text-foreground overflow-hidden;
-    font-family: 'Inter', 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'SF Pro Display', 'Noto Sans', sans-serif;
-    font-optical-sizing: auto;
-    font-feature-settings: 'cv11', 'ss01';
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-family: var(--font-family-sans);
+    font-feature-settings: "rlig" 1, "calt" 1;
+    overflow: hidden;
   }
+}
 
-  /* Glassmorphism utilities */
+@layer components {
+  /* Glass Effect Components */
   .glass-surface {
     background: var(--gradient-glass);
-    backdrop-filter: blur(12px);
-    border: 1px solid hsl(var(--glass-border));
-    box-shadow: var(--shadow-glass);
+    backdrop-filter: blur(20px) saturate(1.8);
+    border: 1px solid hsl(var(--border) / 0.2);
   }
-
-  .glass-window {
-    background: hsl(var(--window-bg) / 0.85);
-    backdrop-filter: blur(20px);
-    border: 1px solid hsl(var(--window-border));
+  
+  .glass-card {
+    background: var(--gradient-widget);
+    backdrop-filter: blur(16px) saturate(1.5);
+    border: 1px solid hsl(var(--border) / 0.15);
+  }
+  
+  /* Window Styles */
+  .window-surface {
+    background: hsl(var(--window-bg));
     box-shadow: var(--shadow-window);
+    border: 1px solid hsl(var(--border) / 0.3);
+  }
+  
+  /* Professional Buttons */
+  .btn-glass {
+    background: var(--gradient-glass);
+    backdrop-filter: blur(10px);
+    border: 1px solid hsl(var(--border) / 0.2);
+    transition: all var(--transition-fast);
+  }
+  
+  .btn-glass:hover {
+    background: var(--gradient-secondary);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
+  }
+  
+  /* Professional Animations */
+  .hover-lift {
+    transition: all var(--transition-fast);
+  }
+  
+  .hover-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+  }
+  
+  .hover-glow:hover {
+    box-shadow: var(--shadow-glow);
+  }
+  
+  /* Typography */
+  .text-display {
+    font-family: var(--font-family-display);
+    font-weight: 600;
+    letter-spacing: -0.025em;
+  }
+  
+  .text-body {
+    font-family: var(--font-family-sans);
+    line-height: 1.6;
+  }
+  
+  .text-mono {
+    font-family: var(--font-family-mono);
   }
 
-  /* Custom scrollbars */
-  .custom-scrollbar::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+  /* Professional Spacing */
+  .space-professional > * + * {
+    margin-top: var(--spacing-md);
   }
-
-  .custom-scrollbar::-webkit-scrollbar-track {
-    background: hsl(var(--muted));
-    border-radius: 4px;
+  
+  /* Smooth Scrollbars */
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--muted-foreground) / 0.3) transparent;
   }
-
-  .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: hsl(var(--muted-foreground) / 0.3);
-    border-radius: 4px;
+  
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
   }
-
-  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: hsl(var(--muted-foreground) / 0.5);
+  
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
   }
-
-  /* Animations */
-  .animate-fade-in {
-    animation: fadeIn var(--duration-normal) ease-out;
+  
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--muted-foreground) / 0.3);
+    border-radius: 3px;
   }
-
-  .animate-slide-up {
-    animation: slideUp var(--duration-normal) ease-out;
-  }
-
-  .animate-scale-in {
-    animation: scaleIn var(--duration-fast) ease-out;
-  }
-
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-
-  @keyframes slideUp {
-    from { 
-      opacity: 0;
-      transform: translateY(20px);
-    }
-    to { 
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  @keyframes scaleIn {
-    from { 
-      opacity: 0;
-      transform: scale(0.95);
-    }
-    to { 
-      opacity: 1;
-      transform: scale(1);
-    }
+  
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background-color: hsl(var(--muted-foreground) / 0.5);
   }
 }

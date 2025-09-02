@@ -1,36 +1,69 @@
-
-import React, { useState } from 'react';
+import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Search, Power, Settings, User, Grid3X3, 
-  Users, FileText, Brain, Calendar, Package,
-  Folder, Activity, LogOut, Lock, RotateCcw
+  Search, 
+  Power, 
+  Settings, 
+  Grid3X3,
+  Clock,
+  Star,
+  Folder,
+  File,
+  Calendar,
+  Users,
+  Brain,
+  FileText,
+  Package,
+  Activity,
+  Gamepad2,
+  Video,
+  Music,
+  Image,
+  MessageSquare
 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Separator } from '@/components/ui/separator';
 import { useOSStore } from '@/stores/osStore';
 import { useWindowStore } from '@/stores/windowStore';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 interface AppItem {
   id: string;
   name: string;
-  icon: React.ComponentType<any>;
+  icon: string;
   component: string;
-  category: 'therapy' | 'productivity' | 'system';
+  category: 'therapy' | 'productivity' | 'media' | 'communication' | 'system';
+  isFavorite?: boolean;
+  description?: string;
 }
 
 const allApps: AppItem[] = [
-  { id: 'patients', name: 'Patient Manager', icon: Users, component: 'PatientManager', category: 'therapy' },
-  { id: 'notes', name: 'Session Notes', icon: FileText, component: 'SessionNotes', category: 'therapy' },
-  { id: 'ai', name: 'AI Assistant', icon: Brain, component: 'AIAssistant', category: 'therapy' },
-  { id: 'calendar', name: 'Calendar', icon: Calendar, component: 'Calendar', category: 'productivity' },
-  { id: 'app-store', name: 'App Store', icon: Package, component: 'AppStore', category: 'system' },
-  { id: 'file-explorer', name: 'File Explorer', icon: Folder, component: 'FileExplorer', category: 'productivity' },
-  { id: 'task-manager', name: 'Task Manager', icon: Activity, component: 'TaskManager', category: 'system' },
-  { id: 'settings', name: 'Settings', icon: Settings, component: 'Settings', category: 'system' },
+  // Therapy Suite
+  { id: 'patients', name: 'Patient Manager', icon: 'Users', component: 'PatientManager', category: 'therapy', isFavorite: true, description: 'Manage patient profiles and records' },
+  { id: 'notes', name: 'Session Notes', icon: 'FileText', component: 'SessionNotes', category: 'therapy', isFavorite: true, description: 'Document therapy sessions' },
+  { id: 'ai', name: 'AI Assistant', icon: 'Brain', component: 'AIAssistant', category: 'therapy', isFavorite: true, description: 'AI-powered therapy insights' },
+  { id: 'exercises', name: 'Exercises & Games', icon: 'Gamepad2', component: 'ExerciseGames', category: 'therapy', description: 'Therapeutic exercises and games' },
+  
+  // Productivity
+  { id: 'calendar', name: 'Calendar', icon: 'Calendar', component: 'Calendar', category: 'productivity', isFavorite: true, description: 'Schedule and appointments' },
+  { id: 'task-manager', name: 'Task Manager', icon: 'Activity', component: 'TaskManager', category: 'system', description: 'System monitoring and tasks' },
+  { id: 'file-explorer', name: 'File Explorer', icon: 'Folder', component: 'FileExplorer', category: 'productivity', description: 'Browse and manage files' },
+  
+  // Media & Communication
+  { id: 'video-calls', name: 'Video Calls', icon: 'Video', component: 'VideoCalls', category: 'communication', description: 'Secure video conferencing' },
+  { id: 'messaging', name: 'Messaging', icon: 'MessageSquare', component: 'Messaging', category: 'communication', description: 'Chat and messaging' },
+  { id: 'media-player', name: 'Media Player', icon: 'Music', component: 'MediaPlayer', category: 'media', description: 'Audio and video player' },
+  { id: 'image-viewer', name: 'Image Viewer', icon: 'Image', component: 'ImageViewer', category: 'media', description: 'View and edit images' },
+  
+  // System
+  { id: 'app-store', name: 'App Store', icon: 'Package', component: 'AppStore', category: 'system', description: 'Download and manage apps' },
+  { id: 'settings', name: 'Settings', icon: 'Settings', component: 'Settings', category: 'system', description: 'System preferences' },
 ];
+
+const iconMap = {
+  Users, FileText, Brain, Calendar, Package, Folder, Activity, Settings,
+  Gamepad2, Video, MessageSquare, Music, Image, Star, Clock, Grid3X3
+};
 
 interface StartMenuProps {
   isOpen: boolean;
@@ -38,61 +71,46 @@ interface StartMenuProps {
 }
 
 export const StartMenu: React.FC<StartMenuProps> = ({ isOpen, onClose }) => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [activeCategory, setActiveCategory] = useState<'all' | 'therapy' | 'productivity' | 'system'>('all');
-  
   const { currentUser, logout } = useOSStore();
-  const { openWindow, windows, restoreWindow, setActiveWindow } = useWindowStore();
+  const { openWindow } = useWindowStore();
+  const [searchQuery, setSearchQuery] = React.useState('');
+  const [activeCategory, setActiveCategory] = React.useState<'all' | 'favorites' | 'therapy' | 'productivity' | 'media' | 'communication' | 'system'>('all');
+
+  const categories = [
+    { id: 'all', name: 'All Apps', icon: Grid3X3 },
+    { id: 'favorites', name: 'Favorites', icon: Star },
+    { id: 'therapy', name: 'Therapy', icon: Brain },
+    { id: 'productivity', name: 'Productivity', icon: FileText },
+    { id: 'media', name: 'Media', icon: Music },
+    { id: 'communication', name: 'Communication', icon: MessageSquare },
+    { id: 'system', name: 'System', icon: Settings },
+  ];
 
   const filteredApps = allApps.filter(app => {
     const matchesSearch = app.name.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = activeCategory === 'all' || app.category === activeCategory;
+    const matchesCategory = activeCategory === 'all' || 
+                           (activeCategory === 'favorites' && app.isFavorite) ||
+                           app.category === activeCategory;
     return matchesSearch && matchesCategory;
   });
 
-  const recentApps = allApps.slice(0, 4); // Mock recent apps
+  const recentApps = allApps.filter(app => app.isFavorite).slice(0, 4);
 
-  const handleAppClick = (app: AppItem) => {
-    // Check if window already exists
-    const existingWindow = windows.find(w => w.component === app.component);
-    
-    if (existingWindow) {
-      if (existingWindow.isMinimized) {
-        restoreWindow(existingWindow.id);
-      } else {
-        setActiveWindow(existingWindow.id);
-      }
-    } else {
-      // Open new window
-      openWindow({
-        title: app.name,
-        component: app.component,
-        isMinimized: false,
-        isMaximized: false,
-        position: { x: 100 + Math.random() * 200, y: 100 + Math.random() * 200 },
-        size: { width: 800, height: 600 },
-      });
-    }
+  const handleOpenApp = (app: AppItem) => {
+    openWindow({
+      title: app.name,
+      component: app.component,
+      position: { x: 100, y: 100 },
+      size: { width: 800, height: 600 },
+      isMinimized: false,
+      isMaximized: false
+    });
     onClose();
   };
 
-  const handlePowerAction = (action: 'logout' | 'restart' | 'shutdown') => {
-    switch (action) {
-      case 'logout':
-        logout();
-        break;
-      case 'restart':
-        // Mock restart action
-        console.log('Restarting ReMotionOS...');
-        window.location.reload();
-        break;
-      case 'shutdown':
-        // Mock shutdown action
-        console.log('Shutting down ReMotionOS...');
-        window.close();
-        break;
-    }
-    onClose();
+  const getIcon = (iconName: string) => {
+    const IconComponent = iconMap[iconName as keyof typeof iconMap] || Grid3X3;
+    return IconComponent;
   };
 
   return (
@@ -101,171 +119,156 @@ export const StartMenu: React.FC<StartMenuProps> = ({ isOpen, onClose }) => {
         <>
           {/* Backdrop */}
           <motion.div
-            className="fixed inset-0 z-40"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40"
             onClick={onClose}
           />
 
           {/* Start Menu */}
           <motion.div
-            className="fixed bottom-16 left-4 z-50 w-96 max-h-[80vh] glass-surface rounded-xl shadow-2xl border border-glass-border overflow-hidden"
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
+            className="fixed bottom-16 left-4 w-96 h-[600px] glass-surface rounded-xl shadow-xl z-50 overflow-hidden"
           >
-            {/* Header */}
-            <div className="p-4 border-b border-glass-border">
-              <div className="flex items-center space-x-3 mb-4">
-                <Avatar className="h-10 w-10">
-                  <AvatarImage src="" />
-                  <AvatarFallback className="bg-primary text-primary-foreground">
-                    {currentUser?.name?.charAt(0) || 'U'}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <div className="font-medium text-foreground">{currentUser?.name || 'User'}</div>
-                  <div className="text-sm text-muted-foreground">{currentUser?.role || 'therapist'}</div>
+            <div className="flex flex-col h-full">
+              {/* Header */}
+              <div className="p-4 border-b border-border/20">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center">
+                    <span className="text-primary-foreground font-medium">
+                      {currentUser?.name?.charAt(0) || 'G'}
+                    </span>
+                  </div>
+                  <div>
+                    <p className="font-medium">{currentUser?.name || 'Guest User'}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {currentUser?.role || 'User'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Search */}
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search apps..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10 h-9 bg-muted/20 border-border/30"
+                  />
                 </div>
               </div>
 
-              {/* Search */}
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search apps..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 bg-background/50"
-                />
-              </div>
-            </div>
+              {/* Categories */}
+              <div className="flex-1 flex">
+                <div className="w-24 border-r border-border/20 p-2">
+                  <div className="space-y-1">
+                    {categories.map((category) => {
+                      const Icon = category.icon;
+                      return (
+                        <Button
+                          key={category.id}
+                          variant={activeCategory === category.id ? "secondary" : "ghost"}
+                          size="sm"
+                          className="w-full h-16 flex-col gap-1 p-2"
+                          onClick={() => setActiveCategory(category.id as any)}
+                        >
+                          <Icon className="h-5 w-5" />
+                          <span className="text-xs">{category.name}</span>
+                        </Button>
+                      );
+                    })}
+                  </div>
+                </div>
 
-            {/* Content */}
-            <div className="p-4 space-y-4 max-h-96 overflow-y-auto custom-scrollbar">
-              {!searchQuery && (
-                <>
-                  {/* Recent Apps */}
-                  <div>
-                    <h3 className="text-sm font-medium text-muted-foreground mb-2">Recent</h3>
-                    <div className="grid grid-cols-2 gap-2">
-                      {recentApps.map((app) => (
-                        <motion.button
+                {/* App Grid */}
+                <div className="flex-1 p-4 overflow-y-auto scrollbar-thin">
+                  {searchQuery === '' && activeCategory === 'all' && (
+                    <div className="mb-6">
+                      <h3 className="text-sm font-medium mb-3 flex items-center gap-2">
+                        <Clock className="h-4 w-4" />
+                        Recent Apps
+                      </h3>
+                      <div className="grid grid-cols-2 gap-2">
+                        {recentApps.map((app) => {
+                          const Icon = getIcon(app.icon);
+                          return (
+                            <Button
+                              key={app.id}
+                              variant="ghost"
+                              className="h-16 flex-col gap-2 hover-lift"
+                              onClick={() => handleOpenApp(app)}
+                            >
+                              <Icon className="h-6 w-6" />
+                              <span className="text-xs">{app.name}</span>
+                            </Button>
+                          );
+                        })}
+                      </div>
+                      <Separator className="my-4" />
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-2 gap-2">
+                    {filteredApps.map((app) => {
+                      const Icon = getIcon(app.icon);
+                      return (
+                        <motion.div
                           key={app.id}
-                          className="flex items-center space-x-3 p-3 rounded-lg hover:bg-muted/50 transition-colors text-left"
-                          onClick={() => handleAppClick(app)}
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
                         >
-                          <app.icon className="h-6 w-6 text-primary" />
-                          <span className="text-sm font-medium text-foreground truncate">
-                            {app.name}
-                          </span>
-                        </motion.button>
-                      ))}
+                          <Button
+                            variant="ghost"
+                            className="h-20 flex-col gap-2 p-3 hover-lift relative group"
+                            onClick={() => handleOpenApp(app)}
+                          >
+                            <Icon className="h-6 w-6" />
+                            <span className="text-xs text-center leading-tight">
+                              {app.name}
+                            </span>
+                            {app.isFavorite && (
+                              <Star className="absolute top-1 right-1 h-3 w-3 text-yellow-500 fill-current" />
+                            )}
+                          </Button>
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+
+                  {filteredApps.length === 0 && (
+                    <div className="text-center text-muted-foreground py-8">
+                      <Grid3X3 className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                      <p>No apps found</p>
                     </div>
-                  </div>
-
-                  <Separator />
-                </>
-              )}
-
-              {/* Category Filters */}
-              <div className="flex space-x-2">
-                {[
-                  { id: 'all', name: 'All' },
-                  { id: 'therapy', name: 'Therapy' },
-                  { id: 'productivity', name: 'Tools' },
-                  { id: 'system', name: 'System' },
-                ].map((category) => (
-                  <Button
-                    key={category.id}
-                    variant={activeCategory === category.id ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setActiveCategory(category.id as any)}
-                    className="h-8 text-xs"
-                  >
-                    {category.name}
-                  </Button>
-                ))}
-              </div>
-
-              {/* Apps Grid */}
-              <div>
-                <h3 className="text-sm font-medium text-muted-foreground mb-2">
-                  {searchQuery ? 'Search Results' : 'Applications'}
-                </h3>
-                <div className="grid grid-cols-1 gap-1">
-                  {filteredApps.map((app) => (
-                    <motion.button
-                      key={app.id}
-                      className="flex items-center space-x-3 p-3 rounded-lg hover:bg-muted/50 transition-colors text-left"
-                      onClick={() => handleAppClick(app)}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ duration: 0.1 }}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      <app.icon className="h-5 w-5 text-primary" />
-                      <span className="text-sm font-medium text-foreground">
-                        {app.name}
-                      </span>
-                    </motion.button>
-                  ))}
+                  )}
                 </div>
-
-                {filteredApps.length === 0 && (
-                  <div className="text-center py-6">
-                    <Grid3X3 className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-                    <p className="text-sm text-muted-foreground">No apps found</p>
-                  </div>
-                )}
               </div>
-            </div>
 
-            {/* Footer */}
-            <div className="p-4 border-t border-glass-border">
-              <div className="flex items-center justify-between">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleAppClick({ id: 'settings', name: 'Settings', icon: Settings, component: 'Settings', category: 'system' })}
-                  className="flex items-center space-x-2"
-                >
-                  <Settings className="h-4 w-4" />
-                  <span>Settings</span>
-                </Button>
-
-                <div className="flex space-x-1">
+              {/* Footer */}
+              <div className="p-3 border-t border-border/20">
+                <div className="flex justify-between">
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => handlePowerAction('logout')}
-                    className="h-9 w-9 p-0"
-                    title="Sign Out"
+                    className="flex-1 justify-start gap-2"
+                    onClick={() => handleOpenApp(allApps.find(app => app.id === 'settings')!)}
                   >
-                    <LogOut className="h-4 w-4" />
+                    <Settings className="h-4 w-4" />
+                    Settings
                   </Button>
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => handlePowerAction('restart')}
-                    className="h-9 w-9 p-0"
-                    title="Restart"
-                  >
-                    <RotateCcw className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handlePowerAction('shutdown')}
-                    className="h-9 w-9 p-0"
-                    title="Shutdown"
+                    className="flex-1 justify-start gap-2"
+                    onClick={logout}
                   >
                     <Power className="h-4 w-4" />
+                    Sign Out
                   </Button>
                 </div>
               </div>
