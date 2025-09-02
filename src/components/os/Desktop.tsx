@@ -14,6 +14,7 @@ import { Calendar } from '@/components/apps/Calendar';
 import { AppStore } from '@/components/apps/AppStore';
 import { TaskManager as TaskManagerApp } from '@/components/apps/TaskManager';
 import { FileExplorer } from '@/components/apps/FileExplorer';
+import { ReportEditor } from '@/components/apps/ReportEditor';
 
 // OS Components
 import { TaskManager } from '@/components/os/TaskManager';
@@ -41,6 +42,7 @@ const AppComponents = {
   AppStore,
   TaskManager: TaskManagerApp,
   FileExplorer,
+  ReportEditor,
   SystemTaskManager: TaskManager,
   FileManager: VirtualFileSystem,
   AccessibilityPanel: AccessibilityPanel,
