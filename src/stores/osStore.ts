@@ -195,6 +195,15 @@ export const useOSStore = create<OSStore>((set, get) => ({
       position: { x: 250, y: 50 },
       isSelected: false,
     },
+    {
+      id: 'meeting-app',
+      name: 'Meeting Hub',
+      icon: 'Video',
+      type: 'app',
+      component: 'MeetingApp',
+      position: { x: 250, y: 150 },
+      isSelected: false,
+    },
   ],
   
   widgets: [],

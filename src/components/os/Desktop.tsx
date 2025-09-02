@@ -17,6 +17,7 @@ import { ReportEditor } from '@/components/apps/ReportEditor';
 import { TaskManager as TaskManagerApp } from '@/components/apps/TaskManager';
 import { FileExplorer } from '@/components/apps/FileExplorer';
 import { ContactManager } from '@/components/apps/ContactManager';
+import { MeetingApp } from '@/components/apps/MeetingApp';
 
 // OS Components
 import { TaskManager } from '@/components/os/TaskManager';
@@ -45,6 +46,7 @@ const AppComponents = {
   AppStore,
   ReMotionStore,
   ContactManager,
+  MeetingApp,
   TaskManager: TaskManagerApp,
   FileExplorer,
   SystemTaskManager: TaskManager,
