@@ -143,7 +143,7 @@ export const Desktop: React.FC = () => {
       </div>
 
       {/* Windows */}
-      <div className="absolute inset-0 pointer-events-none">
+      <div className="absolute inset-0 pointer-events-none z-30">
         <div className="relative h-full w-full pointer-events-auto">
           {windows
             .filter(window => !window.isMinimized)
