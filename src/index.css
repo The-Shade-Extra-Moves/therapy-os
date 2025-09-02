@@ -2,41 +2,84 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* ReMotionOS Design System - Therapy-focused colors with glassmorphism effects */
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Core Background & Surface Colors */
+    --background: 220 25% 97%;
+    --foreground: 220 20% 15%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    /* Glass Effect Surfaces */
+    --glass-surface: 220 40% 98%;
+    --glass-border: 220 30% 85%;
+    --glass-shadow: 220 15% 60%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    /* Card & Container Colors */
+    --card: 220 30% 96%;
+    --card-foreground: 220 20% 20%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --popover: 220 35% 98%;
+    --popover-foreground: 220 20% 15%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    /* Primary - Calming Therapy Blue */
+    --primary: 213 85% 60%;
+    --primary-light: 213 85% 75%;
+    --primary-dark: 213 85% 45%;
+    --primary-foreground: 220 25% 98%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    /* Secondary - Healing Green */
+    --secondary: 158 75% 55%;
+    --secondary-light: 158 75% 70%;
+    --secondary-dark: 158 75% 40%;
+    --secondary-foreground: 158 15% 15%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    /* Accent - Creative Purple */
+    --accent: 260 75% 65%;
+    --accent-light: 260 75% 80%;
+    --accent-dark: 260 75% 50%;
+    --accent-foreground: 260 15% 98%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    /* Muted & Subtle Colors */
+    --muted: 220 20% 94%;
+    --muted-foreground: 220 15% 55%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    /* Destructive - Soft Warning Red */
+    --destructive: 0 75% 65%;
+    --destructive-foreground: 0 10% 98%;
 
-    --radius: 0.5rem;
+    /* Interactive Elements */
+    --border: 220 25% 88%;
+    --input: 220 25% 92%;
+    --ring: 213 85% 60%;
+
+    /* Desktop Environment Colors */
+    --desktop-bg: 220 30% 92%;
+    --taskbar-bg: 220 40% 98%;
+    --window-bg: 220 35% 98%;
+    --window-border: 220 30% 85%;
+    
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(213 85% 60%), hsl(213 85% 75%));
+    --gradient-secondary: linear-gradient(135deg, hsl(158 75% 55%), hsl(158 75% 70%));
+    --gradient-accent: linear-gradient(135deg, hsl(260 75% 65%), hsl(260 75% 80%));
+    --gradient-glass: linear-gradient(135deg, hsl(220 40% 98% / 0.8), hsl(220 30% 95% / 0.6));
+    --gradient-desktop: linear-gradient(135deg, hsl(220 30% 92%), hsl(220 25% 88%));
+
+    /* Shadows & Effects */
+    --shadow-sm: 0 2px 4px hsl(220 15% 60% / 0.1);
+    --shadow-md: 0 4px 12px hsl(220 15% 60% / 0.15);
+    --shadow-lg: 0 8px 25px hsl(220 15% 60% / 0.2);
+    --shadow-glass: 0 8px 32px hsl(220 15% 60% / 0.12);
+    --shadow-window: 0 12px 40px hsl(220 15% 60% / 0.25);
+
+    /* Animation Durations */
+    --duration-fast: 0.15s;
+    --duration-normal: 0.3s;
+    --duration-slow: 0.5s;
+
+    /* Border Radius */
+    --radius: 0.75rem;
 
     --sidebar-background: 0 0% 98%;
 
@@ -56,41 +99,70 @@ All colors MUST be HSL.
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    /* Dark Theme for ReMotionOS */
+    --background: 220 25% 8%;
+    --foreground: 220 15% 92%;
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --glass-surface: 220 25% 12%;
+    --glass-border: 220 20% 25%;
+    --glass-shadow: 220 15% 5%;
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --card: 220 20% 12%;
+    --card-foreground: 220 15% 88%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --popover: 220 25% 10%;
+    --popover-foreground: 220 15% 92%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --primary: 213 85% 70%;
+    --primary-light: 213 85% 85%;
+    --primary-dark: 213 85% 55%;
+    --primary-foreground: 220 25% 8%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --secondary: 158 75% 65%;
+    --secondary-light: 158 75% 80%;
+    --secondary-dark: 158 75% 50%;
+    --secondary-foreground: 158 15% 8%;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 260 75% 75%;
+    --accent-light: 260 75% 90%;
+    --accent-dark: 260 75% 60%;
+    --accent-foreground: 260 15% 8%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --muted: 220 15% 15%;
+    --muted-foreground: 220 15% 65%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --destructive: 0 75% 70%;
+    --destructive-foreground: 0 10% 8%;
+
+    --border: 220 20% 22%;
+    --input: 220 20% 18%;
+    --ring: 213 85% 70%;
+
+    --desktop-bg: 220 25% 10%;
+    --taskbar-bg: 220 25% 12%;
+    --window-bg: 220 20% 12%;
+    --window-border: 220 20% 25%;
+
+    --gradient-primary: linear-gradient(135deg, hsl(213 85% 70%), hsl(213 85% 85%));
+    --gradient-secondary: linear-gradient(135deg, hsl(158 75% 65%), hsl(158 75% 80%));
+    --gradient-accent: linear-gradient(135deg, hsl(260 75% 75%), hsl(260 75% 90%));
+    --gradient-glass: linear-gradient(135deg, hsl(220 25% 12% / 0.8), hsl(220 20% 15% / 0.6));
+    --gradient-desktop: linear-gradient(135deg, hsl(220 25% 10%), hsl(220 20% 8%));
+
+    --shadow-sm: 0 2px 4px hsl(220 15% 5% / 0.2);
+    --shadow-md: 0 4px 12px hsl(220 15% 5% / 0.3);
+    --shadow-lg: 0 8px 25px hsl(220 15% 5% / 0.4);
+    --shadow-glass: 0 8px 32px hsl(220 15% 5% / 0.25);
+    --shadow-window: 0 12px 40px hsl(220 15% 5% / 0.5);
+
+    --sidebar-background: 220 25% 10%;
+    --sidebar-foreground: 220 15% 88%;
+    --sidebar-primary: 213 85% 70%;
+    --sidebar-primary-foreground: 220 25% 8%;
+    --sidebar-accent: 220 20% 18%;
+    --sidebar-accent-foreground: 220 15% 88%;
+    --sidebar-border: 220 20% 22%;
+    --sidebar-ring: 213 85% 70%;
   }
 }
 
@@ -100,6 +172,82 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground overflow-hidden;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+  }
+
+  /* Glassmorphism utilities */
+  .glass-surface {
+    background: var(--gradient-glass);
+    backdrop-filter: blur(12px);
+    border: 1px solid hsl(var(--glass-border));
+    box-shadow: var(--shadow-glass);
+  }
+
+  .glass-window {
+    background: hsl(var(--window-bg) / 0.85);
+    backdrop-filter: blur(20px);
+    border: 1px solid hsl(var(--window-border));
+    box-shadow: var(--shadow-window);
+  }
+
+  /* Custom scrollbars */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: hsl(var(--muted));
+    border-radius: 4px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted-foreground) / 0.3);
+    border-radius: 4px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.5);
+  }
+
+  /* Animations */
+  .animate-fade-in {
+    animation: fadeIn var(--duration-normal) ease-out;
+  }
+
+  .animate-slide-up {
+    animation: slideUp var(--duration-normal) ease-out;
+  }
+
+  .animate-scale-in {
+    animation: scaleIn var(--duration-fast) ease-out;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes slideUp {
+    from { 
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to { 
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes scaleIn {
+    from { 
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to { 
+      opacity: 1;
+      transform: scale(1);
+    }
   }
 }
