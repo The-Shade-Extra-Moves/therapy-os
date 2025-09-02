@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-import { Table } from '@tiptap/extension-table';
 import Image from '@tiptap/extension-image';
 import TextAlign from '@tiptap/extension-text-align';
+import { TextStyle } from '@tiptap/extension-text-style';
 import Color from '@tiptap/extension-color';
 import Highlight from '@tiptap/extension-highlight';
 import { Button } from '@/components/ui/button';
@@ -28,13 +28,11 @@ export const ReportEditor: React.FC = () => {
   const editor = useEditor({
     extensions: [
       StarterKit,
-      Table.configure({
-        resizable: true,
-      }),
       Image,
       TextAlign.configure({
         types: ['heading', 'paragraph'],
       }),
+      TextStyle,
       Color,
       Highlight.configure({ multicolor: true }),
     ],
