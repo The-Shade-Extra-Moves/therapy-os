@@ -1,10 +1,8 @@
 import React from 'react';
 import { Rnd } from 'react-rnd';
-import { motion } from 'framer-motion';
-import { Minus, Square, X, Maximize2, Minimize2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useWindowStore, WindowState } from '@/stores/windowStore';
-import { useOSStore } from '@/stores/osStore';
-import { Button } from '@/components/ui/button';
+import { WindowControls } from './WindowControls';
 
 interface WindowProps {
   window: WindowState;
@@ -12,15 +10,7 @@ interface WindowProps {
 }
 
 export const Window: React.FC<WindowProps> = ({ window, children }) => {
-  const { 
-    closeWindow, 
-    minimizeWindow, 
-    maximizeWindow, 
-    setActiveWindow,
-    updateWindowPosition,
-    updateWindowSize 
-  } = useWindowStore();
-  const { appearance } = useOSStore();
+  const { closeWindow, minimizeWindow, maximizeWindow, restoreWindow, setActiveWindow, updateWindowPosition, updateWindowSize } = useWindowStore();
 
   const handleDragStop = (e: any, d: any) => {
     updateWindowPosition(window.id, { x: d.x, y: d.y });
@@ -29,105 +19,113 @@ export const Window: React.FC<WindowProps> = ({ window, children }) => {
   const handleResizeStop = (e: any, direction: any, ref: any, delta: any, position: any) => {
     updateWindowSize(window.id, {
       width: ref.offsetWidth,
-      height: ref.offsetHeight,
+      height: ref.offsetHeight
     });
     updateWindowPosition(window.id, position);
   };
 
-  const windowStyle = window.isMaximized 
-    ? { x: 0, y: 0, width: '100vw', height: 'calc(100vh - 60px)' }
-    : { 
-        x: window.position.x, 
-        y: window.position.y, 
-        width: window.size.width, 
-        height: window.size.height 
+  const handleMinimize = () => {
+    minimizeWindow(window.id);
+  };
+
+  const handleMaximize = () => {
+    if (window.isMaximized) {
+      restoreWindow(window.id);
+    } else {
+      maximizeWindow(window.id);
+    }
+  };
+
+  const handleClose = () => {
+    closeWindow(window.id);
+  };
+
+  const handleRestore = () => {
+    restoreWindow(window.id);
+  };
+
+  const handleFocus = () => {
+    setActiveWindow(window.id);
+  };
+
+  // Calculate position and size for maximized windows
+  const rndProps = window.isMaximized 
+    ? {
+        position: { x: 0, y: 0 },
+        size: { width: '100vw', height: 'calc(100vh - 48px)' },
+        disableDragging: true,
+        enableResizing: false
+      }
+    : {
+        position: window.position,
+        size: window.size,
+        disableDragging: false,
+        enableResizing: true
       };
 
-  if (window.isMinimized) return null;
-
   return (
-    <motion.div
-      initial={appearance.animations ? { opacity: 0, scale: 0.9 } : { opacity: 1, scale: 1 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={appearance.animations ? { opacity: 0, scale: 0.9 } : { opacity: 1, scale: 1 }}
-      transition={{ duration: appearance.animations ? 0.2 : 0 }}
-      style={{ zIndex: window.isActive ? 9999 : window.zIndex }}
-    >
-      <Rnd
-        position={window.isMaximized ? { x: 0, y: 0 } : window.position}
-        size={window.isMaximized ? { width: '100vw', height: 'calc(100vh - 60px)' } : window.size}
-        onDragStop={handleDragStop}
-        onResizeStop={handleResizeStop}
-        disableDragging={window.isMaximized}
-        enableResizing={!window.isMaximized}
-        minWidth={320}
-        minHeight={240}
-        className={`
-          glass-window rounded-xl overflow-hidden
-          ${window.isActive ? 'ring-2 ring-primary/50' : ''}
-        `}
-        style={{
-          background: `hsl(var(--window-bg) / ${appearance.transparency})`,
-          backdropFilter: `blur(${appearance.transparency * 25}px)`
-        }}
-        dragHandleClassName="window-header"
-        onClick={() => setActiveWindow(window.id)}
-      >
-        {/* Window Header */}
-        <div className="window-header flex items-center justify-between p-4 bg-gradient-glass border-b border-glass-border/50 cursor-move">
-          <div className="flex items-center space-x-3">
-            <div className="flex space-x-2">
-              <div className="w-3 h-3 rounded-full bg-destructive"></div>
-              <div className="w-3 h-3 rounded-full bg-accent"></div>
-              <div className="w-3 h-3 rounded-full bg-secondary"></div>
-            </div>
-            <h3 className="text-sm font-medium text-foreground select-none">
-              {window.title}
-            </h3>
-          </div>
-          
-          <div className="flex items-center space-x-1">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={(e) => {
-                e.stopPropagation();
-                minimizeWindow(window.id);
+    <AnimatePresence>
+      {!window.isMinimized && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.9, y: 20 }}
+          transition={{ 
+            duration: 0.3,
+            ease: [0.25, 0.46, 0.45, 0.94]
+          }}
+          style={{ zIndex: window.zIndex }}
+          className="absolute"
+        >
+          <Rnd
+            {...rndProps}
+            onDragStop={handleDragStop}
+            onResizeStop={handleResizeStop}
+            minWidth={400}
+            minHeight={300}
+            bounds="window"
+            dragHandleClassName="window-drag-handle"
+            onMouseDown={handleFocus}
+          >
+            <motion.div
+              className={`window-surface rounded-xl overflow-hidden h-full flex flex-col ${
+                window.isActive ? 'shadow-window' : 'shadow-lg'
+              }`}
+              whileHover={{ 
+                boxShadow: window.isActive ? undefined : 'var(--shadow-window)'
               }}
-              className="h-6 w-6 p-0 hover:bg-glass-surface/50"
+              transition={{ duration: 0.2 }}
             >
-              <Minus className="h-3 w-3" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={(e) => {
-                e.stopPropagation();
-                maximizeWindow(window.id);
-              }}
-              className="h-6 w-6 p-0 hover:bg-glass-surface/50"
-            >
-              {window.isMaximized ? <Minimize2 className="h-3 w-3" /> : <Maximize2 className="h-3 w-3" />}
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={(e) => {
-                e.stopPropagation();
-                closeWindow(window.id);
-              }}
-              className="h-6 w-6 p-0 hover:bg-destructive/20 hover:text-destructive"
-            >
-              <X className="h-3 w-3" />
-            </Button>
-          </div>
-        </div>
-
-        {/* Window Content */}
-        <div className="flex-1 h-full overflow-hidden">
-          {children}
-        </div>
-      </Rnd>
-    </motion.div>
+              {/* Window Header */}
+              <div className="window-drag-handle flex items-center justify-between px-4 py-3 bg-card/50 border-b border-border/20 backdrop-blur-sm">
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-3 h-3 rounded-full bg-red-500 hover:bg-red-600 transition-colors cursor-pointer" onClick={handleClose} />
+                    <div className="w-3 h-3 rounded-full bg-yellow-500 hover:bg-yellow-600 transition-colors cursor-pointer" onClick={handleMinimize} />
+                    <div className="w-3 h-3 rounded-full bg-green-500 hover:bg-green-600 transition-colors cursor-pointer" onClick={handleMaximize} />
+                  </div>
+                  <h3 className="font-medium text-sm select-none">{window.title}</h3>
+                </div>
+                
+                <WindowControls
+                  windowId={window.id}
+                  isMaximized={window.isMaximized}
+                  isMinimized={window.isMinimized}
+                  onMinimize={handleMinimize}
+                  onMaximize={handleMaximize}
+                  onClose={handleClose}
+                  onRestore={handleRestore}
+                />
+              </div>
+              
+              {/* Window Content */}
+              <div className="flex-1 overflow-hidden bg-window-bg">
+                {children}
+              </div>
+            </motion.div>
+          </Rnd>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 };

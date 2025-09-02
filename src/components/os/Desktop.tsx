@@ -35,6 +35,9 @@ const AppComponents = {
   AppStore,
   TaskManager,
   FileExplorer,
+  ExerciseGames: React.lazy(() => import('@/components/apps/ExerciseGames').then(m => ({ default: m.ExerciseGames }))),
+  MindMapWhiteboard: React.lazy(() => import('@/components/apps/MindMapWhiteboard').then(m => ({ default: m.MindMapWhiteboard }))),
+  VideoCalls: React.lazy(() => import('@/components/apps/VideoCalls').then(m => ({ default: m.VideoCalls }))),
 };
 
 export const Desktop: React.FC = () => {
@@ -72,7 +75,13 @@ export const Desktop: React.FC = () => {
 
     return (
       <Window key={window.id} window={window}>
-        <AppComponent />
+        <React.Suspense fallback={
+          <div className="flex items-center justify-center h-full">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        }>
+          <AppComponent />
+        </React.Suspense>
       </Window>
     );
   };
