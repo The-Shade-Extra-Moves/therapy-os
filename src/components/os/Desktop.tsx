@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { lazy } from 'react';
 import { motion } from 'framer-motion';
 import { useWindowStore } from '@/stores/windowStore';
 import { Window } from './Window';
@@ -47,6 +47,7 @@ const AppComponents = {
   ReMotionStore,
   ContactManager,
   MeetingApp,
+  DrawingApp: lazy(() => import('../apps/DrawingApp')),
   TaskManager: TaskManagerApp,
   FileExplorer,
   SystemTaskManager: TaskManager,

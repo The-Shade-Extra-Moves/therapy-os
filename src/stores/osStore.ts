@@ -196,6 +196,15 @@ export const useOSStore = create<OSStore>((set, get) => ({
       isSelected: false,
     },
     {
+      id: 'drawing-studio',
+      name: 'Drawing Studio',
+      icon: 'Palette',
+      type: 'app',
+      component: 'DrawingApp',
+      position: { x: 300, y: 50 },
+      isSelected: false,
+    },
+    {
       id: 'meeting-app',
       name: 'Meeting Hub',
       icon: 'Video',
