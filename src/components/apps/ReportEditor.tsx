@@ -1,10 +1,7 @@
 import React, { useState } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-import Table from '@tiptap/extension-table';
-import TableRow from '@tiptap/extension-table-row';
-import TableHeader from '@tiptap/extension-table-header';
-import TableCell from '@tiptap/extension-table-cell';
+import { Table } from '@tiptap/extension-table';
 import Image from '@tiptap/extension-image';
 import TextAlign from '@tiptap/extension-text-align';
 import Color from '@tiptap/extension-color';
@@ -34,9 +31,6 @@ export const ReportEditor: React.FC = () => {
       Table.configure({
         resizable: true,
       }),
-      TableRow,
-      TableHeader,
-      TableCell,
       Image,
       TextAlign.configure({
         types: ['heading', 'paragraph'],
