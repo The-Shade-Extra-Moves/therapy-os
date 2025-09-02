@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,7 @@ import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import Editor from '@monaco-editor/react';
 import {
   Play,
   Square,
@@ -49,7 +50,18 @@ import {
   Layers,
   Move,
   RotateCcw,
-  Bug
+  Bug,
+  Brain,
+  Heart,
+  Clock,
+  Mic,
+  Video,
+  FileText,
+  Target,
+  TrendingUp,
+  Repeat,
+  Bell,
+  Activity
 } from 'lucide-react';
 
 interface Component {
@@ -84,6 +96,7 @@ interface HistoryEntry {
 }
 
 const componentLibrary = [
+  // Basic Components
   { type: 'button', name: 'Button', icon: <MousePointer className="w-4 h-4" />, category: 'Basic' },
   { type: 'text', name: 'Text', icon: <Type className="w-4 h-4" />, category: 'Basic' },
   { type: 'input', name: 'Input', icon: <Type className="w-4 h-4" />, category: 'Form' },
@@ -97,6 +110,18 @@ const componentLibrary = [
   { type: 'container', name: 'Container', icon: <Layout className="w-4 h-4" />, category: 'Layout' },
   { type: 'grid', name: 'Grid', icon: <Grid className="w-4 h-4" />, category: 'Layout' },
   { type: 'list', name: 'List', icon: <List className="w-4 h-4" />, category: 'Layout' },
+  
+  // Therapy-Specific Components
+  { type: 'exercise', name: 'Exercise', icon: <Activity className="w-4 h-4" />, category: 'Therapy' },
+  { type: 'assessment', name: 'Assessment', icon: <Target className="w-4 h-4" />, category: 'Therapy' },
+  { type: 'decision', name: 'Decision', icon: <Brain className="w-4 h-4" />, category: 'Therapy' },
+  { type: 'timer', name: 'Timer', icon: <Clock className="w-4 h-4" />, category: 'Therapy' },
+  { type: 'notification', name: 'Notification', icon: <Bell className="w-4 h-4" />, category: 'Therapy' },
+  { type: 'mediaplayer', name: 'Media Player', icon: <Video className="w-4 h-4" />, category: 'Therapy' },
+  { type: 'journal', name: 'Journal', icon: <FileText className="w-4 h-4" />, category: 'Therapy' },
+  { type: 'progress', name: 'Progress', icon: <TrendingUp className="w-4 h-4" />, category: 'Therapy' },
+  { type: 'loop', name: 'Loop', icon: <Repeat className="w-4 h-4" />, category: 'Therapy' },
+  { type: 'ai_assistant', name: 'AI Assistant', icon: <Bot className="w-4 h-4" />, category: 'Therapy' },
 ];
 
 const AppBuilderApp: React.FC = () => {
@@ -110,7 +135,7 @@ const AppBuilderApp: React.FC = () => {
     lastModified: new Date()
   });
   
-  const [mode, setMode] = useState<'blocks' | 'code' | 'preview'>('blocks');
+  const [mode, setMode] = useState<'blocks' | 'code' | 'preview' | 'therapy'>('blocks');
   const [selectedComponent, setSelectedComponent] = useState<Component | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
@@ -118,6 +143,8 @@ const AppBuilderApp: React.FC = () => {
   const [showGrid, setShowGrid] = useState(true);
   const [showAI, setShowAI] = useState(false);
   const [aiPrompt, setAiPrompt] = useState('');
+  const [therapyWorkflow, setTherapyWorkflow] = useState<any[]>([]);
+  const [blocklyWorkspace, setBlocklyWorkspace] = useState<any>(null);
   
   const canvasRef = useRef<HTMLDivElement>(null);
   const [draggedComponent, setDraggedComponent] = useState<string | null>(null);

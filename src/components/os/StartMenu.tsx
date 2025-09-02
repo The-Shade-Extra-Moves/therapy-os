@@ -29,6 +29,7 @@ const allApps: AppItem[] = [
   { id: 'ai-assistant', name: 'AI Assistant', icon: Brain, component: 'AIAssistantApp', category: 'therapy' },
   { id: 'ai-secretary', name: 'AI Secretary', icon: Bot, component: 'AISecretaryApp', category: 'productivity' },
   { id: 'app-builder', name: 'App Builder', icon: Code, component: 'AppBuilderApp', category: 'productivity' },
+  { id: 'ai-therapist', name: 'AI Therapist', icon: Brain, component: 'AITherapistApp', category: 'therapy' },
   { id: 'therapy-builder', name: 'Therapy Builder', icon: Heart, component: 'TherapyAppBuilder', category: 'therapy' },
   { id: 'drawing', name: 'Drawing Studio', icon: Palette, component: 'DrawingApp', category: 'therapy' },
   { id: 'contacts', name: 'Contact Manager', icon: Contact, component: 'ContactManager', category: 'therapy' },

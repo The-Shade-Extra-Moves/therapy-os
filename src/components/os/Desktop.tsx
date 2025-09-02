@@ -19,6 +19,9 @@ import { FileExplorer } from '@/components/apps/FileExplorer';
 import { ContactManager } from '@/components/apps/ContactManager';
 import { MeetingApp } from '@/components/apps/MeetingApp';
 
+const AppBuilderApp = lazy(() => import('@/components/apps/AppBuilderApp'));
+const AITherapistApp = lazy(() => import('@/components/apps/AITherapistApp'));
+
 // OS Components
 import { TaskManager } from '@/components/os/TaskManager';
 import { NotificationCenter } from '@/components/os/NotificationCenter';
@@ -43,7 +46,8 @@ const AppComponents = {
   AIAssistant,
   AIAssistantApp: lazy(() => import('../apps/AIAssistantApp')),
   AISecretaryApp: lazy(() => import('../apps/AISecretaryApp')),
-  AppBuilderApp: lazy(() => import('../apps/AppBuilderApp')),
+  AppBuilderApp,
+  AITherapistApp,
   TherapyAppBuilder: lazy(() => import('../apps/TherapyAppBuilder')),
   Settings,
   Calendar,
