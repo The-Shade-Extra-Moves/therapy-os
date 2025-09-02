@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useWindowStore } from '@/stores/windowStore';
@@ -37,7 +38,17 @@ export const Desktop: React.FC = () => {
     const AppComponent = AppComponents[window.component as keyof typeof AppComponents];
     
     if (!AppComponent) {
-      return <div className="p-4 text-center text-muted-foreground">App not found</div>;
+      return (
+        <div className="p-8 text-center">
+          <div className="text-muted-foreground mb-4">
+            <div className="text-lg font-medium">App not found</div>
+            <div className="text-sm">Component: {window.component}</div>
+          </div>
+          <div className="text-xs text-muted-foreground">
+            Available components: {Object.keys(AppComponents).join(', ')}
+          </div>
+        </div>
+      );
     }
 
     return (
@@ -107,8 +118,14 @@ export const Desktop: React.FC = () => {
       </div>
 
       {/* Windows */}
-      <div className="absolute inset-0">
-        {windows.map(renderWindow)}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="relative h-full w-full pointer-events-auto">
+          {windows
+            .filter(window => !window.isMinimized)
+            .sort((a, b) => a.zIndex - b.zIndex)
+            .map(renderWindow)
+          }
+        </div>
       </div>
 
       {/* Taskbar */}

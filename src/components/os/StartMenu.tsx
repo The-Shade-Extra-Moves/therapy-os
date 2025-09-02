@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -41,7 +42,7 @@ export const StartMenu: React.FC<StartMenuProps> = ({ isOpen, onClose }) => {
   const [activeCategory, setActiveCategory] = useState<'all' | 'therapy' | 'productivity' | 'system'>('all');
   
   const { currentUser, logout } = useOSStore();
-  const { openWindow } = useWindowStore();
+  const { openWindow, windows, restoreWindow, setActiveWindow } = useWindowStore();
 
   const filteredApps = allApps.filter(app => {
     const matchesSearch = app.name.toLowerCase().includes(searchQuery.toLowerCase());
@@ -52,14 +53,26 @@ export const StartMenu: React.FC<StartMenuProps> = ({ isOpen, onClose }) => {
   const recentApps = allApps.slice(0, 4); // Mock recent apps
 
   const handleAppClick = (app: AppItem) => {
-    openWindow({
-      title: app.name,
-      component: app.component,
-      isMinimized: false,
-      isMaximized: false,
-      position: { x: 100, y: 100 },
-      size: { width: 800, height: 600 },
-    });
+    // Check if window already exists
+    const existingWindow = windows.find(w => w.component === app.component);
+    
+    if (existingWindow) {
+      if (existingWindow.isMinimized) {
+        restoreWindow(existingWindow.id);
+      } else {
+        setActiveWindow(existingWindow.id);
+      }
+    } else {
+      // Open new window
+      openWindow({
+        title: app.name,
+        component: app.component,
+        isMinimized: false,
+        isMaximized: false,
+        position: { x: 100 + Math.random() * 200, y: 100 + Math.random() * 200 },
+        size: { width: 800, height: 600 },
+      });
+    }
     onClose();
   };
 
@@ -71,10 +84,12 @@ export const StartMenu: React.FC<StartMenuProps> = ({ isOpen, onClose }) => {
       case 'restart':
         // Mock restart action
         console.log('Restarting ReMotionOS...');
+        window.location.reload();
         break;
       case 'shutdown':
         // Mock shutdown action
         console.log('Shutting down ReMotionOS...');
+        window.close();
         break;
     }
     onClose();
@@ -107,12 +122,12 @@ export const StartMenu: React.FC<StartMenuProps> = ({ isOpen, onClose }) => {
                 <Avatar className="h-10 w-10">
                   <AvatarImage src="" />
                   <AvatarFallback className="bg-primary text-primary-foreground">
-                    {currentUser?.name.charAt(0) || 'U'}
+                    {currentUser?.name?.charAt(0) || 'U'}
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <div className="font-medium text-foreground">{currentUser?.name}</div>
-                  <div className="text-sm text-muted-foreground">{currentUser?.role}</div>
+                  <div className="font-medium text-foreground">{currentUser?.name || 'User'}</div>
+                  <div className="text-sm text-muted-foreground">{currentUser?.role || 'therapist'}</div>
                 </div>
               </div>
 
