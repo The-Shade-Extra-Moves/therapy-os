@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Video, VideoOff, Mic, MicOff, Share, Share2, Users, MessageSquare,
@@ -10,8 +10,12 @@ import {
   ArrowRight, Play, Pause, SkipForward, SkipBack, Zap, Star,
   UserCheck, Shield, Lock, Unlock, Headphones, Speaker, Wifi,
   WifiOff, RefreshCw, ChevronDown, ChevronUp, Plus, Minus,
-  CheckCircle, AlertCircle, Info, X, Maximize2, Copy, Download as DownloadIcon
+  CheckCircle, AlertCircle, Info, X, Maximize2, Copy, Download as DownloadIcon,
+  Layers, Presentation, Focus, SplitSquareHorizontal,
+  HelpCircle, Lightbulb, Activity, Target, Timer, Archive
 } from 'lucide-react';
+import { renderFocusView, renderSplitView, renderPresentationView } from './MeetingAppViews';
+import { renderEnhancedSidebar } from './MeetingAppSidebar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -114,6 +118,25 @@ export const MeetingApp: React.FC = () => {
   const [showAIInsights, setShowAIInsights] = useState(false);
   const [sessionNotes, setSessionNotes] = useState('');
   const [biometricData, setBiometricData] = useState({ heartRate: 72, stress: 'low' });
+  
+  // New enhanced state management
+  const [viewMode, setViewMode] = useState<'gallery' | 'focus' | 'split' | 'presentation'>('gallery');
+  const [isTranscriptionEnabled, setIsTranscriptionEnabled] = useState(true);
+  const [showParticipantsPanel, setShowParticipantsPanel] = useState(true);
+  const [connectionQuality, setConnectionQuality] = useState<'excellent' | 'good' | 'poor'>('excellent');
+  const [aiInsights, setAiInsights] = useState<string[]>([
+    'Client appears more relaxed than last session',
+    'Speaking rate has increased - positive engagement',
+    'Recommend following up on anxiety management techniques'
+  ]);
+  const [recordings, setRecordings] = useState<any[]>([]);
+  const [sharedFiles, setSharedFiles] = useState<any[]>([]);
+  const [isLiveTranscribing, setIsLiveTranscribing] = useState(false);
+  const [currentTranscript, setCurrentTranscript] = useState('');
+  const [sessionTabs, setSessionTabs] = useState([
+    { id: 1, title: 'Emma Rodriguez - Individual', active: true, type: 'individual' },
+  ]);
+  const [activeSessionTab, setActiveSessionTab] = useState(1);
 
   // Session timer effect
   useEffect(() => {
@@ -129,7 +152,7 @@ export const MeetingApp: React.FC = () => {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const sendMessage = () => {
+  const sendMessage = useCallback(() => {
     if (!chatMessage.trim()) return;
     
     const newMessage = {
@@ -142,7 +165,58 @@ export const MeetingApp: React.FC = () => {
     
     setMessages([...messages, newMessage]);
     setChatMessage('');
-  };
+  }, [chatMessage, messages]);
+
+  const toggleRecording = useCallback(() => {
+    setIsRecording(!isRecording);
+    if (!isRecording) {
+      // Start recording logic
+      const newRecording = {
+        id: recordings.length + 1,
+        name: `Session Recording ${recordings.length + 1}`,
+        timestamp: new Date().toISOString(),
+        duration: 0,
+        size: '0 MB'
+      };
+      setRecordings([...recordings, newRecording]);
+    }
+  }, [isRecording, recordings]);
+
+  const shareFile = useCallback((file: File) => {
+    const newFile = {
+      id: sharedFiles.length + 1,
+      name: file.name,
+      size: (file.size / 1024 / 1024).toFixed(2) + ' MB',
+      timestamp: new Date().toISOString(),
+      sharedBy: 'Dr. Sarah Thompson'
+    };
+    setSharedFiles([...sharedFiles, newFile]);
+  }, [sharedFiles]);
+
+  const generateAISummary = useCallback(() => {
+    const summary = {
+      keyPoints: [
+        'Client showed improved emotional regulation',
+        'Homework completion rate: 80%',
+        'Anxiety levels decreased since last session'
+      ],
+      recommendations: [
+        'Continue current CBT approach',
+        'Introduce mindfulness exercises',
+        'Schedule follow-up in 1 week'
+      ],
+      nextSteps: [
+        'Review anxiety management techniques',
+        'Assign breathing exercises homework',
+        'Check in on sleep patterns'
+      ]
+    };
+    return summary;
+  }, []);
+
+  const handleViewModeChange = useCallback((mode: typeof viewMode) => {
+    setViewMode(mode);
+  }, []);
 
   const renderVideoGrid = () => (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 h-full">
@@ -212,395 +286,247 @@ export const MeetingApp: React.FC = () => {
     </div>
   );
 
-  const renderSidebar = () => (
-    <Card className="w-80 h-full bg-background/80 backdrop-blur-sm border-primary/10">
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
-        <TabsList className="grid w-full grid-cols-4 m-4">
-          <TabsTrigger value="chat" className="text-xs">
-            <MessageSquare className="h-4 w-4" />
-          </TabsTrigger>
-          <TabsTrigger value="notes" className="text-xs">
-            <FileText className="h-4 w-4" />
-          </TabsTrigger>
-          <TabsTrigger value="tools" className="text-xs">
-            <PenTool className="h-4 w-4" />
-          </TabsTrigger>
-          <TabsTrigger value="ai" className="text-xs">
-            <Brain className="h-4 w-4" />
-          </TabsTrigger>
-        </TabsList>
-
-        <div className="flex-1 overflow-hidden">
-          <TabsContent value="chat" className="h-full m-0 p-4 pt-0">
-            <div className="flex flex-col h-full">
-              <div className="mb-3">
-                <h3 className="font-semibold mb-2">Session Chat</h3>
-                <div className="flex items-center space-x-2">
-                  <Badge variant="outline" className="text-xs">
-                    {mockParticipants.length} participants
-                  </Badge>
-                  <Badge variant="outline" className="text-xs text-green-600">
-                    Encrypted
-                  </Badge>
-                </div>
-              </div>
-
-              <ScrollArea className="flex-1 mb-4">
-                <div className="space-y-3">
-                  {messages.map((msg) => (
-                    <motion.div
-                      key={msg.id}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className={`p-2 rounded-lg text-sm ${
-                        msg.type === 'ai' 
-                          ? 'bg-blue-100 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800' 
-                          : 'bg-muted'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between mb-1">
-                        <span className={`font-medium text-xs ${
-                          msg.type === 'ai' ? 'text-blue-600 dark:text-blue-400' : ''
-                        }`}>
-                          {msg.sender}
-                        </span>
-                        <span className="text-xs text-muted-foreground">{msg.timestamp}</span>
-                      </div>
-                      <p className="text-sm">{msg.message}</p>
-                    </motion.div>
-                  ))}
-                </div>
-              </ScrollArea>
-
-              <div className="flex space-x-2">
-                <Input
-                  placeholder="Type a message..."
-                  value={chatMessage}
-                  onChange={(e) => setChatMessage(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-                  className="flex-1"
-                />
-                <Button size="icon" onClick={sendMessage}>
-                  <Send className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="notes" className="h-full m-0 p-4 pt-0">
-            <div className="flex flex-col h-full">
-              <h3 className="font-semibold mb-3">Session Notes</h3>
-              
-              <div className="space-y-4 mb-4">
-                <div className="grid grid-cols-2 gap-2 text-sm">
-                  <div>
-                    <Label className="text-xs text-muted-foreground">Duration</Label>
-                    <p className="font-medium">{formatTime(sessionTimer)}</p>
-                  </div>
-                  <div>
-                    <Label className="text-xs text-muted-foreground">Type</Label>
-                    <p className="font-medium">{sessionData.type}</p>
-                  </div>
-                </div>
-
-                <Separator />
-
-                <div>
-                  <Label className="text-xs text-muted-foreground">Mood Check</Label>
-                  <div className="flex space-x-1 mt-1">
-                    {moodOptions.map((mood) => (
-                      <Button
-                        key={mood.value}
-                        variant={selectedMood === mood.value ? "default" : "outline"}
-                        size="sm"
-                        className="p-1 h-8 w-8"
-                        onClick={() => setSelectedMood(mood.value)}
-                      >
-                        <span className="text-sm">{mood.emoji}</span>
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex-1">
-                <Label className="text-sm font-medium">Notes</Label>
-                <Textarea
-                  placeholder="Add session observations, progress notes, next steps..."
-                  value={sessionNotes}
-                  onChange={(e) => setSessionNotes(e.target.value)}
-                  className="mt-2 h-40 resize-none"
-                />
-              </div>
-
-              <Button className="mt-3" variant="outline">
-                <Save className="h-4 w-4 mr-2" />
-                Save to Report
-              </Button>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="tools" className="h-full m-0 p-4 pt-0">
-            <div className="space-y-4">
-              <h3 className="font-semibold">Therapy Tools</h3>
-
-              <div className="space-y-3">
-                <Card className="p-3">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium">Whiteboard</span>
-                    <Switch
-                      checked={showWhiteboard}
-                      onCheckedChange={setShowWhiteboard}
-                    />
-                  </div>
-                  {showWhiteboard && (
-                    <div className="grid grid-cols-4 gap-2">
-                      <Button variant="outline" size="sm" className="p-2">
-                        <PenTool className="h-4 w-4" />
-                      </Button>
-                      <Button variant="outline" size="sm" className="p-2">
-                        <Type className="h-4 w-4" />
-                      </Button>
-                      <Button variant="outline" size="sm" className="p-2">
-                        <Square className="h-4 w-4" />
-                      </Button>
-                      <Button variant="outline" size="sm" className="p-2">
-                        <Circle className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  )}
-                </Card>
-
-                <Card className="p-3">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium">Mood Tracker</span>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setShowMoodTracker(!showMoodTracker)}
-                    >
-                      <Smile className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </Card>
-
-                <Card className="p-3">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium">Breathing Exercise</span>
-                    <Button variant="outline" size="sm">
-                      <Heart className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </Card>
-
-                <Card className="p-3">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium">Progress Chart</span>
-                    <Button variant="outline" size="sm">
-                      <BarChart3 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </Card>
-
-                <Card className="p-3">
-                  <span className="text-sm font-medium">Session Template</span>
-                  <Select value={currentTemplate} onValueChange={setCurrentTemplate}>
-                    <SelectTrigger className="mt-2">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {therapyTemplates.map((template) => (
-                        <SelectItem key={template.id} value={template.id}>
-                          {template.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </Card>
-              </div>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="ai" className="h-full m-0 p-4 pt-0">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="font-semibold">AI Assistant</h3>
-                <Switch
-                  checked={isAIEnabled}
-                  onCheckedChange={setIsAIEnabled}
-                />
-              </div>
-
-              {isAIEnabled && (
-                <div className="space-y-3">
-                  <Card className="p-3 bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <Brain className="h-4 w-4 text-blue-600" />
-                      <span className="text-sm font-medium text-blue-800 dark:text-blue-300">
-                        Real-time Insights
-                      </span>
-                    </div>
-                    <ul className="text-xs text-blue-700 dark:text-blue-400 space-y-1">
-                      <li>• Client appears calm and engaged</li>
-                      <li>• Speaking rate is normal</li>
-                      <li>• Positive emotional indicators detected</li>
-                    </ul>
-                  </Card>
-
-                  <Card className="p-3">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <Heart className="h-4 w-4 text-red-500" />
-                      <span className="text-sm font-medium">Biometrics</span>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2 text-xs">
-                      <div>
-                        <span className="text-muted-foreground">Heart Rate</span>
-                        <p className="font-medium">{biometricData.heartRate} BPM</p>
-                      </div>
-                      <div>
-                        <span className="text-muted-foreground">Stress Level</span>
-                        <p className="font-medium capitalize">{biometricData.stress}</p>
-                      </div>
-                    </div>
-                  </Card>
-
-                  <Card className="p-3">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <Zap className="h-4 w-4 text-yellow-500" />
-                      <span className="text-sm font-medium">Suggestions</span>
-                    </div>
-                    <ul className="text-xs space-y-1">
-                      <li>• Consider grounding exercises</li>
-                      <li>• Good time for goal setting</li>
-                      <li>• Client is responsive to CBT techniques</li>
-                    </ul>
-                  </Card>
-
-                  <Button variant="outline" className="w-full">
-                    <FileText className="h-4 w-4 mr-2" />
-                    Generate Summary
-                  </Button>
-                </div>
-              )}
-            </div>
-          </TabsContent>
+  // Enhanced render functions
+  const renderTopToolbar = () => (
+    <div className="flex items-center justify-between p-4 bg-background/95 backdrop-blur-md border-b border-primary/10">
+      {/* Session Tabs */}
+      <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-1 bg-muted/50 rounded-lg p-1">
+          {sessionTabs.map((tab) => (
+            <Button
+              key={tab.id}
+              variant={activeSessionTab === tab.id ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setActiveSessionTab(tab.id)}
+              className="text-xs"
+            >
+              <FileText className="h-3 w-3 mr-1" />
+              {tab.title}
+            </Button>
+          ))}
+          <Button variant="ghost" size="sm" className="text-xs">
+            <Plus className="h-3 w-3" />
+          </Button>
         </div>
-      </Tabs>
-    </Card>
+        
+        <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-500/20">
+          <div className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse" />
+          Live
+        </Badge>
+        {isRecording && (
+          <Badge variant="outline" className="bg-red-500/10 text-red-600 border-red-500/20">
+            <div className="w-2 h-2 bg-red-500 rounded-full mr-2 animate-pulse" />
+            Recording
+          </Badge>
+        )}
+      </div>
+
+      {/* View Mode Controls */}
+      <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-1 bg-muted/50 rounded-lg p-1">
+          <Button
+            variant={viewMode === 'gallery' ? "default" : "ghost"}
+            size="sm"
+            onClick={() => handleViewModeChange('gallery')}
+            className="text-xs"
+          >
+            <Grid3X3 className="h-3 w-3" />
+          </Button>
+          <Button
+            variant={viewMode === 'focus' ? "default" : "ghost"}
+            size="sm"
+            onClick={() => handleViewModeChange('focus')}
+            className="text-xs"
+          >
+            <Focus className="h-3 w-3" />
+          </Button>
+          <Button
+            variant={viewMode === 'split' ? "default" : "ghost"}
+            size="sm"
+            onClick={() => handleViewModeChange('split')}
+            className="text-xs"
+          >
+            <SplitSquareHorizontal className="h-3 w-3" />
+          </Button>
+          <Button
+            variant={viewMode === 'presentation' ? "default" : "ghost"}
+            size="sm"
+            onClick={() => handleViewModeChange('presentation')}
+            className="text-xs"
+          >
+            <Presentation className="h-3 w-3" />
+          </Button>
+        </div>
+
+        <Separator orientation="vertical" className="h-6" />
+
+        <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+          <Clock className="h-4 w-4" />
+          <span>{formatTime(sessionTimer)}</span>
+        </div>
+        <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+          <Users className="h-4 w-4" />
+          <span>{mockParticipants.length}</span>
+        </div>
+        <div className="flex items-center space-x-2">
+          <div className={`w-2 h-2 rounded-full ${
+            connectionQuality === 'excellent' ? 'bg-green-500' :
+            connectionQuality === 'good' ? 'bg-yellow-500' : 'bg-red-500'
+          }`} />
+          <span className="text-xs text-muted-foreground capitalize">{connectionQuality}</span>
+        </div>
+        <Button variant="ghost" size="sm">
+          <Settings className="h-4 w-4" />
+        </Button>
+      </div>
+    </div>
   );
 
   return (
-    <div className="flex h-full bg-gradient-to-br from-background/80 to-background/60">
-      {/* Main Video Area */}
-      <div className="flex-1 flex flex-col">
-        {/* Top Meeting Bar */}
-        <div className="bg-background/60 backdrop-blur-sm border-b border-primary/10 p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div>
-                <h1 className="font-semibold">{sessionData.title}</h1>
-                <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                  <div className="flex items-center space-x-1">
-                    <Clock className="h-4 w-4" />
-                    <span>{formatTime(sessionTimer)}</span>
-                  </div>
-                  <div className="flex items-center space-x-1">
-                    <Users className="h-4 w-4" />
-                    <span>{mockParticipants.length} participants</span>
-                  </div>
-                  {isRecording && (
-                    <div className="flex items-center space-x-1 text-red-600">
-                      <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-                      <span>Recording</span>
-                    </div>
-                  )}
-                </div>
+    <div className="flex flex-col h-full bg-gradient-to-br from-background via-background to-primary/5">
+      {/* Enhanced Top Toolbar */}
+      {renderTopToolbar()}
+
+      {/* Main Content Area */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Enhanced Video Area */}
+        <div className="flex-1 flex flex-col">
+          {/* Video Grid based on view mode */}
+          <div className="flex-1 p-4">
+            {viewMode === 'gallery' && renderVideoGrid()}
+            {viewMode === 'focus' && renderFocusView()}
+            {viewMode === 'split' && renderSplitView()}
+            {viewMode === 'presentation' && renderPresentationView()}
+          </div>
+
+          {/* Live Transcription Bar */}
+          {isTranscriptionEnabled && (
+            <div className="bg-background/95 backdrop-blur-sm border-t border-primary/10 p-3">
+              <div className="flex items-center space-x-2 mb-2">
+                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
+                <span className="text-xs font-medium text-blue-600">Live Transcription</span>
+                <Button variant="ghost" size="sm" onClick={() => setIsTranscriptionEnabled(false)}>
+                  <X className="h-3 w-3" />
+                </Button>
               </div>
+              <ScrollArea className="h-16">
+                <p className="text-sm text-muted-foreground">
+                  {currentTranscript || "I'm feeling much better today. The breathing exercises you taught me last week have been really helpful..."}
+                </p>
+              </ScrollArea>
             </div>
-
-            <div className="flex items-center space-x-2">
-              <Badge variant="outline" className="text-xs">
-                {sessionData.type}
-              </Badge>
-              <Badge variant="secondary" className="text-xs bg-green-100 text-green-800">
-                Encrypted
-              </Badge>
-              <Button variant="outline" size="sm">
-                <Settings className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
+          )}
         </div>
 
-        {/* Video Grid */}
-        <div className="flex-1 p-4">
-          {renderVideoGrid()}
-        </div>
-
-        {/* Bottom Control Bar */}
-        <div className="bg-background/80 backdrop-blur-sm border-t border-primary/10 p-4">
-          <div className="flex items-center justify-center space-x-4">
-            <Button
-              variant={isMuted ? "destructive" : "outline"}
-              size="lg"
-              onClick={() => setIsMuted(!isMuted)}
-              className="rounded-full"
-            >
-              {isMuted ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
-            </Button>
-
-            <Button
-              variant={!isVideoOn ? "destructive" : "outline"}
-              size="lg"
-              onClick={() => setIsVideoOn(!isVideoOn)}
-              className="rounded-full"
-            >
-              {isVideoOn ? <Video className="h-5 w-5" /> : <VideoOff className="h-5 w-5" />}
-            </Button>
-
-            <Button
-              variant={isScreenSharing ? "default" : "outline"}
-              size="lg"
-              onClick={() => setIsScreenSharing(!isScreenSharing)}
-              className="rounded-full"
-            >
-              <Share className="h-5 w-5" />
-            </Button>
-
-            <Button
-              variant={isRecording ? "destructive" : "outline"}
-              size="lg"
-              onClick={() => setIsRecording(!isRecording)}
-              className="rounded-full"
-            >
-              {isRecording ? <Square className="h-4 w-4" /> : <Video className="h-5 w-5" />}
-            </Button>
-
-            <Separator orientation="vertical" className="h-8" />
-
-            <Button variant="outline" size="lg" className="rounded-full">
-              <Headphones className="h-5 w-5" />
-            </Button>
-
-            <Button variant="outline" size="lg" className="rounded-full">
-              <Camera className="h-5 w-5" />
-            </Button>
-
-            <Button variant="outline" size="lg" className="rounded-full">
-              <MoreVertical className="h-5 w-5" />
-            </Button>
-
-            <Separator orientation="vertical" className="h-8" />
-
-            <Button variant="destructive" size="lg" className="rounded-full">
-              <PhoneOff className="h-5 w-5" />
-            </Button>
-          </div>
-        </div>
+        {/* Enhanced Sidebar */}
+        {renderEnhancedSidebar({
+          activeTab,
+          setActiveTab,
+          messages,
+          chatMessage,
+          setChatMessage,
+          sendMessage,
+          sessionTimer,
+          selectedMood,
+          setSelectedMood,
+          sessionNotes,
+          setSessionNotes,
+          formatTime,
+          aiInsights,
+          isAIEnabled,
+          setIsAIEnabled,
+          showParticipantsPanel,
+          setShowParticipantsPanel,
+          recordings,
+          sharedFiles,
+          biometricData,
+          currentTemplate,
+          setCurrentTemplate
+        })}
       </div>
 
-      {/* Sidebar */}
-      {renderSidebar()}
+      {/* Enhanced Control Bar */}
+      <div className="flex items-center justify-between p-4 bg-background/95 backdrop-blur-md border-t border-primary/10">
+        {/* Main Controls */}
+        <div className="flex items-center space-x-3">
+          <Button
+            variant={isMuted ? "destructive" : "outline"}
+            size="icon"
+            onClick={() => setIsMuted(!isMuted)}
+            className="rounded-full"
+          >
+            {isMuted ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+          </Button>
+
+          <Button
+            variant={isVideoOn ? "outline" : "destructive"}
+            size="icon"
+            onClick={() => setIsVideoOn(!isVideoOn)}
+            className="rounded-full"
+          >
+            {isVideoOn ? <Video className="h-5 w-5" /> : <VideoOff className="h-5 w-5" />}
+          </Button>
+
+          <Button
+            variant={isScreenSharing ? "default" : "outline"}
+            size="icon"
+            onClick={() => setIsScreenSharing(!isScreenSharing)}
+            className="rounded-full"
+          >
+            <Share className="h-5 w-5" />
+          </Button>
+
+          <Button
+            variant={isRecording ? "destructive" : "outline"}
+            size="icon"
+            onClick={toggleRecording}
+            className="rounded-full"
+          >
+            <div className="relative">
+              <div className="w-3 h-3 bg-current rounded-full" />
+              {isRecording && (
+                <div className="absolute inset-0 w-3 h-3 bg-current rounded-full animate-ping" />
+              )}
+            </div>
+          </Button>
+        </div>
+
+        {/* Therapy Tools */}
+        <div className="flex items-center space-x-2">
+          <Button variant="outline" size="sm" onClick={() => setShowMoodTracker(true)}>
+            <Smile className="h-4 w-4 mr-2" />
+            Mood
+          </Button>
+
+          <Button variant="outline" size="sm" onClick={() => setShowWhiteboard(!showWhiteboard)}>
+            <PenTool className="h-4 w-4 mr-2" />
+            Board
+          </Button>
+
+          <Button variant="outline" size="sm">
+            <Upload className="h-4 w-4 mr-2" />
+            Share
+          </Button>
+
+          <Button variant="outline" size="sm">
+            <Brain className="h-4 w-4 mr-2" />
+            AI Summary
+          </Button>
+        </div>
+
+        {/* Session End */}
+        <div className="flex items-center space-x-2">
+          <Button variant="outline" size="sm">
+            <Save className="h-4 w-4 mr-2" />
+            Save Notes
+          </Button>
+          
+          <Button variant="destructive" className="rounded-full">
+            <PhoneOff className="h-5 w-5 mr-2" />
+            End Session
+          </Button>
+        </div>
+      </div>
 
       {/* Mood Tracker Modal */}
       <AnimatePresence>
