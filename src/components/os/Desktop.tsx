@@ -30,7 +30,6 @@ import { VirtualDesktops } from './VirtualDesktops';
 import { WidgetPanel } from '@/components/widgets/WidgetPanel';
 import { DraggableWidget } from '@/components/widgets/DraggableWidget';
 import { AccessibilityPanel } from './AccessibilityPanel';
-import { MacOSDock } from './MacOSDock';
 import { useOSStore } from '@/stores/osStore';
 
 const AppComponents = {
@@ -52,7 +51,6 @@ export const Desktop: React.FC = () => {
   const { desktopIcons, widgets, clearSelection, appearance, virtualDesktops } = useOSStore();
   const [isWidgetPanelOpen, setIsWidgetPanelOpen] = React.useState(false);
   const [isNotificationCenterOpen, setIsNotificationCenterOpen] = React.useState(false);
-  const [showDock, setShowDock] = React.useState(false);
   const [mousePos, setMousePos] = React.useState({ x: 0, y: 0 });
 
   // Track mouse for parallax effect
@@ -179,14 +177,6 @@ export const Desktop: React.FC = () => {
           isOpen={isNotificationCenterOpen} 
           onClose={() => setIsNotificationCenterOpen(false)} 
         />
-
-        {/* Optional macOS-style Dock */}
-        {showDock && (
-          <MacOSDock 
-            position="bottom" 
-            size="medium"
-          />
-        )}
 
         {/* Taskbar */}
         <Taskbar 

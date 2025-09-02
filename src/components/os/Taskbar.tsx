@@ -20,8 +20,7 @@ import {
 import { useWindowStore } from '@/stores/windowStore';
 import { useOSStore } from '@/stores/osStore';
 import { Button } from '@/components/ui/button';
-import { EnhancedStartMenu } from './EnhancedStartMenu';
-import { EnhancedSystemTray } from './EnhancedSystemTray';
+import { StartMenu } from './StartMenu';
 
 const appIcons = [
   { id: 'patient-manager', icon: Users, label: 'Patients', component: 'PatientManager' },
@@ -39,9 +38,10 @@ interface TaskbarProps {
 }
 
 export const Taskbar: React.FC<TaskbarProps> = ({ onOpenWidgets, onOpenNotifications }) => {
-  const { windows, openWindow, restoreWindow, setActiveWindow, minimizeWindow } = useWindowStore();
+  const { windows, openWindow, restoreWindow, setActiveWindow } = useWindowStore();
   const { appearance } = useOSStore();
   const [isStartMenuOpen, setIsStartMenuOpen] = useState(false);
+  const currentTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
   const handleAppClick = (app: typeof appIcons[0]) => {
     const existingWindow = windows.find(w => w.component === app.component);
@@ -49,8 +49,6 @@ export const Taskbar: React.FC<TaskbarProps> = ({ onOpenWidgets, onOpenNotificat
     if (existingWindow) {
       if (existingWindow.isMinimized) {
         restoreWindow(existingWindow.id);
-      } else if (existingWindow.isActive) {
-        minimizeWindow(existingWindow.id);
       } else {
         setActiveWindow(existingWindow.id);
       }
@@ -76,7 +74,7 @@ export const Taskbar: React.FC<TaskbarProps> = ({ onOpenWidgets, onOpenNotificat
 
   // Dynamic taskbar styling based on appearance settings
   const getTaskbarClasses = () => {
-    const baseClasses = "fixed glass-surface border-glass-border/50 z-50 backdrop-blur-xl";
+    const baseClasses = "fixed glass-surface border-glass-border/50 z-50";
     const sizeClasses = {
       small: "h-12",
       medium: "h-16", 
@@ -116,8 +114,8 @@ export const Taskbar: React.FC<TaskbarProps> = ({ onOpenWidgets, onOpenNotificat
           <Button
             variant="ghost"
             size="sm"
-            className={`h-10 w-10 p-0 hover:bg-primary/10 hover:text-primary transition-all duration-200 ${
-              isStartMenuOpen ? 'bg-primary/20 text-primary scale-105' : ''
+            className={`h-10 w-10 p-0 hover:bg-primary/10 hover:text-primary ${
+              isStartMenuOpen ? 'bg-primary/20 text-primary' : ''
             }`}
             onClick={toggleStartMenu}
           >
@@ -125,7 +123,7 @@ export const Taskbar: React.FC<TaskbarProps> = ({ onOpenWidgets, onOpenNotificat
           </Button>
         </div>
 
-        {/* App Icons with Enhanced Animations */}
+        {/* App Icons */}
         <div className={`flex items-center ${
           appearance.taskbarPosition === 'left' || appearance.taskbarPosition === 'right' 
             ? 'flex-col space-y-2' 
@@ -134,45 +132,22 @@ export const Taskbar: React.FC<TaskbarProps> = ({ onOpenWidgets, onOpenNotificat
           {appIcons.map((app) => {
             const isOpen = windows.some(w => w.component === app.component && !w.isMinimized);
             const isActive = windows.some(w => w.component === app.component && w.isActive);
-            const isMinimized = windows.some(w => w.component === app.component && w.isMinimized);
             
             return (
-              <motion.div 
-                key={app.id} 
-                whileHover={{ scale: 1.1, y: -2 }} 
-                whileTap={{ scale: 0.95 }}
-                transition={{ type: 'spring', stiffness: 400, damping: 17 }}
-              >
+              <motion.div key={app.id} whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => handleAppClick(app)}
                   className={`
-                    h-12 w-12 p-0 relative transition-all duration-200 rounded-xl
-                    ${isActive ? 'bg-primary/20 text-primary shadow-lg shadow-primary/20' : 'hover:bg-glass-surface/50'}
+                    h-12 w-12 p-0 relative
+                    ${isActive ? 'bg-primary/20 text-primary' : 'hover:bg-glass-surface/50'}
                     ${isOpen ? 'ring-2 ring-primary/30' : ''}
-                    ${isMinimized ? 'opacity-60' : ''}
                   `}
-                  title={app.label}
                 >
                   <app.icon className="h-5 w-5" />
-                  
-                  {/* Running Indicator */}
                   {isOpen && (
-                    <motion.div 
-                      className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-secondary rounded-full"
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      exit={{ scale: 0 }}
-                    />
-                  )}
-                  
-                  {/* Active Indicator */}
-                  {isActive && (
-                    <motion.div 
-                      className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-3 h-0.5 bg-primary rounded-full"
-                      layoutId={`active-${app.id}`}
-                    />
+                    <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-primary rounded-full" />
                   )}
                 </Button>
               </motion.div>
@@ -180,7 +155,7 @@ export const Taskbar: React.FC<TaskbarProps> = ({ onOpenWidgets, onOpenNotificat
           })}
         </div>
 
-        {/* Enhanced System Tray */}
+        {/* System Tray */}
         <div className={`flex items-center ${
           appearance.taskbarPosition === 'left' || appearance.taskbarPosition === 'right' 
             ? 'flex-col space-y-2' 
@@ -192,19 +167,44 @@ export const Taskbar: React.FC<TaskbarProps> = ({ onOpenWidgets, onOpenNotificat
               variant="ghost" 
               size="sm"
               onClick={onOpenWidgets}
-              className="h-8 w-8 p-0 text-foreground hover:bg-primary/20 transition-all duration-200"
-              title="Open Widgets"
+              className="h-8 w-8 p-0 text-foreground hover:bg-primary/20"
             >
               <Grid3X3 className="w-4 h-4" />
             </Button>
           )}
 
-          <EnhancedSystemTray onOpenNotifications={onOpenNotifications} />
+          {/* Notifications Toggle */}
+          {onOpenNotifications && (
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={onOpenNotifications}
+              className="h-8 w-8 p-0 text-foreground hover:bg-primary/20 relative"
+            >
+              <Bell className="w-4 h-4" />
+              <div className="absolute -top-1 -right-1 w-2 h-2 bg-destructive rounded-full animate-pulse" />
+            </Button>
+          )}
+          
+          <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+            <Wifi className="h-4 w-4" />
+            <Volume2 className="h-4 w-4" />
+            <Clock className="h-4 w-4" />
+            <span className="text-xs font-medium">{currentTime}</span>
+          </div>
+          
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 w-8 p-0 rounded-full hover:bg-glass-surface/50"
+          >
+            <User className="h-4 w-4" />
+          </Button>
         </div>
       </motion.div>
 
-      {/* Enhanced Start Menu */}
-      <EnhancedStartMenu isOpen={isStartMenuOpen} onClose={closeStartMenu} />
+      {/* Start Menu */}
+      <StartMenu isOpen={isStartMenuOpen} onClose={closeStartMenu} />
     </>
   );
 };
