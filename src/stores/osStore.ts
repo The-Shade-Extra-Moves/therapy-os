@@ -186,6 +186,15 @@ export const useOSStore = create<OSStore>((set, get) => ({
       position: { x: 150, y: 350 },
       isSelected: false,
     },
+    {
+      id: 'contact-manager',
+      name: 'Contact Manager',
+      icon: 'Contact',
+      type: 'app',
+      component: 'ContactManager',
+      position: { x: 250, y: 50 },
+      isSelected: false,
+    },
   ],
   
   widgets: [],
