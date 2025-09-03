@@ -15,7 +15,9 @@ import {
   Grid3X3,
   Bell,
   Activity,
-  Folder
+  Folder,
+  Shield,
+  Bot
 } from 'lucide-react';
 import { useWindowStore } from '@/stores/windowStore';
 import { useOSStore } from '@/stores/osStore';
@@ -25,6 +27,8 @@ import { StartMenu } from './StartMenu';
 const appIcons = [
   { id: 'patient-manager', icon: Users, label: 'Patients', component: 'PatientManager' },
   { id: 'session-notes', icon: FileText, label: 'Notes', component: 'SessionNotes' },
+  { id: 'search-browser', icon: Shield, label: 'Private Search', component: 'SearchBrowser' },
+  { id: 'ai-search', icon: Bot, label: 'AI Search', component: 'AISearchApp' },
   { id: 'ai-assistant', icon: Brain, label: 'AI Assistant', component: 'AIAssistant' },
   { id: 'calendar', icon: Calendar, label: 'Calendar', component: 'Calendar' },
   { id: 'file-manager', icon: Folder, label: 'Files', component: 'FileManager' },

@@ -161,6 +161,27 @@ const mockApps: App[] = [
     changelog: ['New billing features', 'Improved calendar sync', 'Bug fixes'],
     permissions: ['Calendar', 'Storage', 'Network'],
   },
+  {
+    id: '7',
+    name: 'Private Search Browser',
+    description: 'Privacy-focused search engine powered by SearXNG with no tracking.',
+    longDescription: 'Complete privacy-focused search experience using SearXNG metasearch engine. Features include multiple search categories (web, images, videos, news, maps, files), search history, bookmarks, and zero tracking. Perfect for confidential research and therapy-related searches.',
+    icon: '🔍',
+    category: 'Utilities',
+    rating: 4.8,
+    reviews: 1456,
+    downloads: '8K+',
+    price: 'Free',
+    screenshots: ['search1.jpg', 'search2.jpg', 'search3.jpg'],
+    developer: 'Privacy Tools Inc',
+    version: '1.0.0',
+    size: '5 MB',
+    featured: true,
+    installed: true,
+    tags: ['search', 'privacy', 'browser', 'SearXNG', 'metasearch'],
+    changelog: ['Initial release', 'SearXNG integration', 'Multi-category search support'],
+    permissions: ['Network'],
+  },
 ];
 
 const categories = [

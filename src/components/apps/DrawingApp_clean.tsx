@@ -1,13 +1,18 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { 
   Paintbrush, Pen, Eraser, Square, Circle as CircleIcon, Triangle as TriangleIcon,
-  Type, Undo2, Redo2, Download, Trash2,
-  Lightbulb, Wand2, Sparkles,
-  ZoomIn, ZoomOut
+  Type, Palette, Layers, Undo2, Redo2, Save, Download, 
+  Eye, EyeOff, Lock, Unlock, Trash2, Plus, Minus,
+  Heart, Star, Sun,
+  Brain, Lightbulb, Wand2, Sparkles, FileText,
+  ZoomIn, ZoomOut, RotateCcw, MousePointer, Share2,
+  FolderOpen, PaintBucket
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
@@ -43,11 +48,14 @@ export default function DrawingApp() {
   const [brushSize, setBrushSize] = useState(5);
   const [opacity, setOpacity] = useState(100);
   const [startPoint, setStartPoint] = useState<Point | null>(null);
+  const [currentPath, setCurrentPath] = useState<Point[]>([]);
   
   // Canvas properties
   const [zoom, setZoom] = useState(100);
   const [showGrid, setShowGrid] = useState(false);
   const [showRulers, setShowRulers] = useState(false);
+  const [layers, setLayers] = useState(['Background']);
+  const [activeLayer, setActiveLayer] = useState(0);
   
   // History management
   const [history, setHistory] = useState<ImageData[]>([]);
@@ -56,6 +64,7 @@ export default function DrawingApp() {
   // AI features
   const [aiEnabled, setAiEnabled] = useState(true);
   const [aiSuggestions, setAiSuggestions] = useState<AISuggestion[]>([]);
+  const aiAnalysisTasksRef = useRef<NodeJS.Timeout[]>([]);
   
   // Color palettes
   const defaultColors = ['#000000', '#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#FF00FF', '#00FFFF', '#FFFFFF'];
@@ -145,6 +154,7 @@ export default function DrawingApp() {
     const point = getCanvasCoordinates(e);
     setIsDrawing(true);
     setStartPoint(point);
+    setCurrentPath([point]);
 
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
@@ -173,6 +183,7 @@ export default function DrawingApp() {
     if (activeTool === 'pen' || activeTool === 'brush' || activeTool === 'eraser') {
       ctx.lineTo(currentPoint.x, currentPoint.y);
       ctx.stroke();
+      setCurrentPath(prev => [...prev, currentPoint]);
     }
   }, [isDrawing, ctx, activeTool, startPoint, getCanvasCoordinates]);
 
@@ -222,6 +233,7 @@ export default function DrawingApp() {
     
     // Save to history
     saveToHistory();
+    setCurrentPath([]);
     setStartPoint(null);
   }, [isDrawing, ctx, activeTool, startPoint, saveToHistory]);
 
@@ -553,8 +565,6 @@ export default function DrawingApp() {
                       value={activeColor}
                       onChange={(e) => setActiveColor(e.target.value)}
                       className="color-picker-input"
-                      title="Choose drawing color"
-                      aria-label="Color picker"
                     />
                   </div>
 

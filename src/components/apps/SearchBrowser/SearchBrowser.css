@@ -1,0 +1,45 @@
+/* SearchBrowser theme-aware iframe styles */
+
+.dark-iframe-filter {
+  filter: invert(0.95) hue-rotate(180deg) brightness(0.85) contrast(1.1) sepia(0.1);
+  background-color: hsl(var(--background));
+  mix-blend-mode: normal;
+}
+
+.light-iframe-filter {
+  background-color: hsl(var(--background));
+  filter: brightness(0.98) contrast(1.02) sepia(0.02);
+  opacity: 0.98;
+}
+
+/* Smooth transition for theme changes */
+.dark-iframe-filter,
+.light-iframe-filter {
+  transition: filter 0.3s ease, opacity 0.3s ease, background-color 0.3s ease;
+}
+
+/* Enhanced iframe integration */
+.dark-iframe-filter::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, hsl(var(--background) / 0.02), hsl(var(--muted) / 0.05));
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Therapy theme specific adjustments */
+.therapy-theme .dark-iframe-filter {
+  filter: invert(0.92) hue-rotate(180deg) brightness(0.8) contrast(1.15) sepia(0.15) hue-rotate(200deg);
+}
+
+/* Auto theme media query support */
+@media (prefers-color-scheme: dark) {
+  .auto-theme .light-iframe-filter {
+    filter: invert(0.95) hue-rotate(180deg) brightness(0.85) contrast(1.1) sepia(0.1);
+    background-color: hsl(var(--background));
+  }
+}

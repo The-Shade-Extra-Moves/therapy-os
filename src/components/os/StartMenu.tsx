@@ -5,7 +5,7 @@ import {
   Search, Power, Settings, User, Grid3X3, 
   Users, FileText, Brain, Calendar, Package,
   Folder, Activity, LogOut, Lock, RotateCcw, Edit,
-  Contact, Video, Palette, Bot, Code, Heart
+  Contact, Video, Palette, Bot, Code, Heart, Shield
 } from 'lucide-react';
 import { useOSStore } from '@/stores/osStore';
 import { useWindowStore } from '@/stores/windowStore';
@@ -25,6 +25,9 @@ interface AppItem {
 const allApps: AppItem[] = [
   { id: 'patients', name: 'Patient Manager', icon: Users, component: 'PatientManager', category: 'therapy' },
   { id: 'notes', name: 'Session Notes', icon: FileText, component: 'SessionNotes', category: 'therapy' },
+  { id: 'notepad-pro', name: 'NotePad Pro', icon: FileText, component: 'NotePadPro', category: 'productivity' },
+  { id: 'search-browser', name: 'Private Search', icon: Shield, component: 'SearchBrowser', category: 'productivity' },
+  { id: 'ai-search', name: 'AI Search', icon: Bot, component: 'AISearchApp', category: 'productivity' },
   { id: 'reports', name: 'Report Editor', icon: Edit, component: 'ReportEditor', category: 'therapy' },
   { id: 'ai-assistant', name: 'AI Assistant', icon: Brain, component: 'AIAssistantApp', category: 'therapy' },
   { id: 'ai-secretary', name: 'AI Secretary', icon: Bot, component: 'AISecretaryApp', category: 'productivity' },

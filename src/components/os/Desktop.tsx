@@ -18,6 +18,7 @@ import { TaskManager as TaskManagerApp } from '@/components/apps/TaskManager';
 import { FileExplorer } from '@/components/apps/FileExplorer';
 import { ContactManager } from '@/components/apps/ContactManager';
 import { MeetingApp } from '@/components/apps/MeetingApp';
+import { NotePadPro, SearchBrowser, AISearchApp } from '@/components/apps';
 
 const AppBuilderApp = lazy(() => import('@/components/apps/AppBuilderApp'));
 const AITherapistApp = lazy(() => import('@/components/apps/AITherapistApp'));
@@ -42,6 +43,9 @@ import { useOSStore } from '@/stores/osStore';
 const AppComponents = {
   PatientManager,
   SessionNotes,
+  NotePadPro,
+  SearchBrowser,
+  AISearchApp,
   ReportEditor,
   AIAssistant,
   AIAssistantApp: lazy(() => import('../apps/AIAssistantApp')),
