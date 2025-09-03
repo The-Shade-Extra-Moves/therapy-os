@@ -14,7 +14,8 @@ import {
   Bot, UserIcon, Clock, TrendingUp, Lightbulb, Target, Heart,
   BarChart3, Eye, EyeOff, Lock, Unlock, Moon, Sun, Palette,
   ChevronDown, ChevronRight, Folder, Search, Filter, Tag,
-  RefreshCw, AlertCircle, CheckCircle, Info, Loader, Book
+  RefreshCw, AlertCircle, CheckCircle, Info, Loader, Book,
+  ExternalLink
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -30,6 +31,8 @@ import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Progress } from '@/components/ui/progress';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 
 // Custom Markdown Components for better styling
@@ -224,6 +227,8 @@ interface ChatMessage {
     mode?: 'general' | 'data-mining' | 'file-analysis';
     dataQuery?: string;
     fileCount?: number;
+    isAutoAnalysis?: boolean;
+    analysisType?: string;
   };
 }
 
@@ -414,10 +419,18 @@ export const AIAssistantApp: React.FC = () => {
   const [analysisDepth, setAnalysisDepth] = useState('standard');
   const [extractedContent, setExtractedContent] = useState<{[key: string]: string}>({});
   const [documentPreviews, setDocumentPreviews] = useState<{[key: string]: any}>({});
-  const [previewMode, setPreviewMode] = useState<'extracted' | 'original'>('extracted');
+  const [previewMode, setPreviewMode] = useState<'extracted' | 'original' | 'manual'>('extracted');
   const [isProcessingFiles, setIsProcessingFiles] = useState(false);
   const [supportedFormats] = useState(['pdf', 'doc', 'docx', 'txt', 'md', 'markdown']);
   const [extractionProgress, setExtractionProgress] = useState<{[key: string]: number}>({});
+  const [enableAutoAnalysis, setEnableAutoAnalysis] = useState(true);
+  
+  // Enhanced file preview states
+  const [pdfPreviewData, setPdfPreviewData] = useState<{[key: string]: any}>({});
+  const [selectedFileForPreview, setSelectedFileForPreview] = useState<string | null>(null);
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const [manualContent, setManualContent] = useState<{[key: string]: string}>({});
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   
   // UI state
   const [sidebarTab, setSidebarTab] = useState('chat');
@@ -433,7 +446,6 @@ export const AIAssistantApp: React.FC = () => {
   
   // File handling
   const [dragActive, setDragActive] = useState(false);
-  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   
   // Refs
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -728,6 +740,367 @@ Previous conversation context:`;
     setIsProcessing(false);
   }, [currentMessage, uploadedFiles, activeTabId, selectedModel, currentMode, enableTTS, selectedLanguage, dataQuery, activeTab?.messages]);
 
+  // Document processing functions
+  const extractTextFromPDF = async (file: File): Promise<{ text: string; previewData: any }> => {
+    try {
+      const pdfjsLib = await import('pdfjs-dist');
+      // Use a compatible worker version
+      pdfjsLib.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.js`;
+      
+      const arrayBuffer = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      
+      let fullText = '';
+      const totalPages = pdf.numPages;
+      const pages: Array<{ pageNumber: number; text: string; wordCount: number }> = [];
+      
+      for (let i = 1; i <= totalPages; i++) {
+        setExtractionProgress(prev => ({ ...prev, [file.name]: (i / totalPages) * 100 }));
+        const page = await pdf.getPage(i);
+        const textContent = await page.getTextContent();
+        const pageText = textContent.items.map((item: any) => item.str).join(' ');
+        const cleanPageText = pageText.trim();
+        
+        if (cleanPageText) {
+          pages.push({
+            pageNumber: i,
+            text: cleanPageText,
+            wordCount: cleanPageText.split(/\s+/).filter(word => word.length > 0).length
+          });
+          fullText += `\n\n--- Page ${i} ---\n${cleanPageText}`;
+        }
+      }
+      
+      const previewData = {
+        type: 'pdf',
+        totalPages: totalPages,
+        pages: pages,
+        pagePreview: pages.slice(0, 3), // First 3 pages for preview
+        totalWords: fullText.split(/\s+/).filter(word => word.length > 0).length,
+        fileUrl: URL.createObjectURL(file) // For PDF viewer
+      };
+      
+      // Store PDF preview data
+      setPdfPreviewData(prev => ({ ...prev, [file.name]: previewData }));
+      
+      return { text: fullText.trim(), previewData };
+    } catch (error) {
+      console.error('PDF extraction error:', error);
+      throw new Error(`Failed to extract text from PDF: ${error}`);
+    }
+  };
+
+  const extractTextFromDocx = async (file: File): Promise<{ text: string; previewData: any }> => {
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const result = await mammoth.extractRawText({ arrayBuffer });
+      const text = result.value;
+      
+      const previewData = {
+        type: 'docx',
+        wordCount: text.split(/\s+/).filter(word => word.length > 0).length,
+        preview: text.substring(0, 1000) + (text.length > 1000 ? '...' : ''),
+        characterCount: text.length
+      };
+      
+      return { text, previewData };
+    } catch (error) {
+      console.error('DOCX extraction error:', error);
+      throw new Error(`Failed to extract text from DOCX: ${error}`);
+    }
+  };
+
+  const extractTextFromMarkdown = async (file: File): Promise<{ text: string; previewData: any }> => {
+    try {
+      const text = await file.text();
+      const md = new MarkdownIt();
+      const html = md.render(text);
+      
+      const previewData = {
+        type: 'markdown',
+        wordCount: text.split(/\s+/).filter(word => word.length > 0).length,
+        preview: text.substring(0, 1000) + (text.length > 1000 ? '...' : ''),
+        characterCount: text.length,
+        html: html // Rendered HTML for preview
+      };
+      
+      return { text, previewData };
+    } catch (error) {
+      console.error('Markdown processing error:', error);
+      throw new Error(`Failed to process Markdown: ${error}`);
+    }
+  };
+
+  const extractTextFromFile = async (file: File): Promise<{ text: string; previewData: any }> => {
+    const extension = file.name.split('.').pop()?.toLowerCase();
+    
+    switch (extension) {
+      case 'pdf':
+        return await extractTextFromPDF(file);
+      case 'docx':
+        return await extractTextFromDocx(file);
+      case 'doc':
+        // For .doc files, we'll try to read as text (limited support)
+        const docText = await file.text();
+        return { 
+          text: docText, 
+          previewData: { 
+            type: 'doc', 
+            wordCount: docText.split(/\s+/).filter(word => word.length > 0).length,
+            preview: docText.substring(0, 1000) + (docText.length > 1000 ? '...' : ''),
+            characterCount: docText.length
+          } 
+        };
+      case 'md':
+      case 'markdown':
+        return await extractTextFromMarkdown(file);
+      case 'txt':
+        const txtText = await file.text();
+        return { 
+          text: txtText, 
+          previewData: { 
+            type: 'txt', 
+            wordCount: txtText.split(/\s+/).filter(word => word.length > 0).length,
+            preview: txtText.substring(0, 1000) + (txtText.length > 1000 ? '...' : ''),
+            characterCount: txtText.length
+          } 
+        };
+      default:
+        throw new Error(`Unsupported file format: ${extension}`);
+    }
+  };
+
+  const processUploadedFiles = async (files: File[]) => {
+    setIsProcessingFiles(true);
+    const newExtractedContent: {[key: string]: string} = {};
+    const newPreviews: {[key: string]: any} = {};
+
+    for (const file of files) {
+      try {
+        setExtractionProgress(prev => ({ ...prev, [file.name]: 0 }));
+        
+        const extension = file.name.split('.').pop()?.toLowerCase();
+        if (!supportedFormats.includes(extension || '')) {
+          toast.error(`Unsupported file format: ${extension}`);
+          continue;
+        }
+
+        const { text: extractedText, previewData } = await extractTextFromFile(file);
+        newExtractedContent[file.name] = extractedText;
+        
+        // Create enhanced preview data
+        newPreviews[file.name] = {
+          name: file.name,
+          size: file.size,
+          type: extension,
+          extractedLength: extractedText.length,
+          wordCount: extractedText.split(/\s+/).filter(word => word.length > 0).length,
+          preview: extractedText.substring(0, 500) + (extractedText.length > 500 ? '...' : ''),
+          ...previewData // Include specific preview data from extraction
+        };
+
+        // Initialize manual content with extracted text
+        setManualContent(prev => ({ ...prev, [file.name]: extractedText }));
+
+        setExtractionProgress(prev => ({ ...prev, [file.name]: 100 }));
+        toast.success(`Successfully extracted text from ${file.name}`);
+      } catch (error) {
+        console.error(`Error processing ${file.name}:`, error);
+        toast.error(`Failed to process ${file.name}: ${error}`);
+        setExtractionProgress(prev => ({ ...prev, [file.name]: 0 }));
+      }
+    }
+
+    setExtractedContent(prev => ({ ...prev, ...newExtractedContent }));
+    setDocumentPreviews(prev => ({ ...prev, ...newPreviews }));
+    setUploadedFiles(prev => [...prev, ...files]);
+    setIsProcessingFiles(false);
+    
+    // Auto-generate analysis summary after successful file processing (if enabled)
+    if (enableAutoAnalysis && Object.keys(newExtractedContent).length > 0) {
+      setTimeout(() => {
+        generateAutoAnalysis(files, newExtractedContent);
+      }, 1000); // Small delay to let UI update
+    }
+  };
+
+  // Auto-generate analysis summary for uploaded files
+  const generateAutoAnalysis = async (files: File[], extractedContent: {[key: string]: string}) => {
+    try {
+      const analysisPrompt = `I have successfully processed and extracted content from ${files.length} document(s). Please provide a comprehensive initial analysis including:
+
+## 📄 Document Overview
+- Brief summary of each document
+- Document type and purpose identification
+- Key sections or structure analysis
+
+## 🔍 Content Analysis  
+- Main topics and themes identified
+- Important information highlighted
+- Key insights and findings
+
+## 📊 Document Statistics
+- Content volume and complexity
+- Language and writing style analysis
+- Technical vs general content assessment
+
+## 💡 Initial Insights
+- Notable patterns or trends
+- Potential areas for deeper analysis
+- Suggested follow-up questions
+
+## 🎯 Recommended Actions
+- What specific analyses would be most valuable
+- Questions I should ask about this content
+- How to best utilize this information
+
+Please analyze the uploaded documents and provide this comprehensive overview to help me understand what I'm working with.`;
+
+      // Create a system message showing the analysis is starting
+      const analysisMessage: ChatMessage = {
+        id: Date.now().toString(),
+        role: 'assistant',
+        content: '🔄 **Analyzing uploaded documents...** \n\nGenerating comprehensive analysis of your uploaded files. This will include document overview, content analysis, key insights, and recommended actions.',
+        type: 'text',
+        timestamp: new Date(),
+        metadata: { 
+          mode: 'file-analysis',
+          isAutoAnalysis: true
+        }
+      };
+
+      // Add the analysis message to chat
+      setChatTabs(prev => prev.map(tab => 
+        tab.id === activeTabId 
+          ? { ...tab, messages: [...tab.messages, analysisMessage] }
+          : tab
+      ));
+
+      // Call Gemini API for analysis
+      const finalPrompt = generateFileAnalysisPrompt(analysisPrompt, files, extractedContent);
+      const response = await callGeminiAPI(finalPrompt, activeTab?.messages || []);
+      
+      // Add the analysis response
+      const responseMessage: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: response,
+        type: 'text',
+        timestamp: new Date(),
+        metadata: { 
+          mode: 'file-analysis',
+          isAutoAnalysis: true,
+          analysisType: 'comprehensive-overview'
+        }
+      };
+
+      setChatTabs(prev => prev.map(tab => 
+        tab.id === activeTabId 
+          ? { ...tab, messages: [...tab.messages.slice(0, -1), responseMessage] }
+          : tab
+      ));
+
+      toast.success('✅ Auto-analysis completed!');
+    } catch (error) {
+      console.error('Auto-analysis failed:', error);
+      toast.error('Failed to generate auto-analysis');
+    }
+  };
+
+  // Enhanced file analysis prompt engineering
+  const generateFileAnalysisPrompt = (message: string, files: File[], extractedContent: {[key: string]: string}) => {
+    const fileContents = Object.entries(extractedContent)
+      .map(([fileName, content]) => {
+        const extension = fileName.split('.').pop()?.toLowerCase();
+        const finalContent = getContentForAnalysis(fileName);
+        return `
+## Document: ${fileName} (${extension?.toUpperCase()})
+
+**Content:**
+\`\`\`
+${finalContent}
+\`\`\`
+`;
+      }).join('\n\n');
+
+    return `You are an advanced document analysis AI. I have uploaded ${files.length} document(s) and need your help analyzing them.
+
+**User Request:** ${message}
+
+**Documents to Analyze:**
+${fileContents}
+
+**Instructions:**
+- Provide comprehensive analysis based on the user's specific request
+- Use markdown formatting for clear, organized responses  
+- Include relevant quotes and references from the documents
+- Highlight key insights, patterns, or important information
+- If analyzing multiple documents, compare and contrast them
+- Be thorough but concise in your analysis
+- Structure your response with clear headings and bullet points
+
+Please analyze the document(s) and respond to the user's request with detailed insights.`;
+  };
+
+  // File preview and manual content management functions
+  const handlePreviewFile = (fileName: string) => {
+    setSelectedFileForPreview(fileName);
+    setShowPreviewModal(true);
+  };
+
+  const handleManualContentChange = (fileName: string, content: string) => {
+    setManualContent(prev => ({ ...prev, [fileName]: content }));
+  };
+
+  const handleUseManualContent = (fileName: string) => {
+    const manual = manualContent[fileName];
+    if (manual) {
+      setExtractedContent(prev => ({ ...prev, [fileName]: manual }));
+      toast.success(`Manual content applied for ${fileName}`);
+    }
+  };
+
+  const handleResetToExtracted = (fileName: string) => {
+    const original = documentPreviews[fileName]?.originalText || extractedContent[fileName];
+    if (original) {
+      setManualContent(prev => ({ ...prev, [fileName]: original }));
+      setExtractedContent(prev => ({ ...prev, [fileName]: original }));
+      toast.success(`Reset to extracted content for ${fileName}`);
+    }
+  };
+
+  const handleRemoveFile = (fileName: string) => {
+    setExtractedContent(prev => {
+      const newContent = { ...prev };
+      delete newContent[fileName];
+      return newContent;
+    });
+    setDocumentPreviews(prev => {
+      const newPreviews = { ...prev };
+      delete newPreviews[fileName];
+      return newPreviews;
+    });
+    setManualContent(prev => {
+      const newManual = { ...prev };
+      delete newManual[fileName];
+      return newManual;
+    });
+    setPdfPreviewData(prev => {
+      const newPdf = { ...prev };
+      delete newPdf[fileName];
+      return newPdf;
+    });
+    setUploadedFiles(prev => prev.filter(file => file.name !== fileName));
+    toast.success(`Removed ${fileName}`);
+  };
+
+  const getContentForAnalysis = (fileName: string) => {
+    // Use manual content if available and different from extracted, otherwise use extracted
+    const manual = manualContent[fileName];
+    const extracted = extractedContent[fileName];
+    return manual && manual !== extracted ? manual : extracted;
+  };
+
   const generateModeSpecificResponse = (message: string, files: File[], mode: string) => {
     switch (mode) {
       case 'general':
@@ -741,9 +1114,15 @@ Previous conversation context:`;
 
       case 'file-analysis':
         if (files.length > 0) {
-          return generateFileAnalysisResponse(files);
+          // Check if we have extracted content for the files
+          const hasExtractedContent = files.some(file => extractedContent[file.name]);
+          if (hasExtractedContent) {
+            return generateFileAnalysisPrompt(message, files, extractedContent);
+          } else {
+            return generateFileAnalysisResponse(files);
+          }
         }
-        return "Please upload one or more files to analyze. I can examine content, structure, sentiment, and provide detailed insights about documents, images, audio files, and more.";
+        return "Please upload one or more files to analyze. I support **PDF**, **DOCX**, **DOC**, **TXT**, **Markdown** files. I can examine content, structure, sentiment, and provide detailed insights about your documents.";
 
       default:
         return generateGeneralAIResponse(message);
@@ -799,10 +1178,57 @@ Previous conversation context:`;
   };
 
   const generateFileAnalysisResponse = (files: File[]) => {
-    const fileTypes = files.map(f => f.type.split('/')[0]).join(', ');
-    const totalSize = files.reduce((sum, f) => sum + f.size, 0);
-    
-    return `I've analyzed ${files.length} file(s) with the following insights:\n\n**File Overview:**\n• Types: ${fileTypes}\n• Total size: ${(totalSize / 1024 / 1024).toFixed(2)} MB\n• Processing time: ${Math.floor(Math.random() * 5) + 2} seconds\n\n**Content Analysis:**\n• Key themes identified: Mental health assessment, therapeutic progress\n• Sentiment analysis: Overall positive tone (78% confidence)\n• Important sections flagged for review\n• Potential action items extracted\n\n**Recommendations:**\n• 3 follow-up questions identified\n• 2 therapeutic interventions suggested\n• 1 area requiring immediate attention\n\nWould you like me to elaborate on any of these findings or perform a deeper analysis?`;
+    const fileInfo = files.map(file => {
+      const extension = file.name.split('.').pop()?.toLowerCase();
+      const isSupported = supportedFormats.includes(extension || '');
+      return {
+        name: file.name,
+        extension,
+        size: (file.size / 1024).toFixed(1) + ' KB',
+        supported: isSupported
+      };
+    });
+
+    const supportedFiles = fileInfo.filter(f => f.supported);
+    const unsupportedFiles = fileInfo.filter(f => !f.supported);
+
+    let response = `## 📄 File Analysis Summary
+
+**Uploaded Files:** ${files.length}
+**Supported Formats:** ${supportedFiles.length}
+**Ready for Processing:** ${supportedFiles.length > 0 ? '✅' : '❌'}
+
+### Supported Files:
+${supportedFiles.map(f => `• **${f.name}** (${f.extension?.toUpperCase()}) - ${f.size}`).join('\n')}
+
+### Processing Capabilities:
+- 📝 **Text Extraction**: Full content extraction from documents
+- 🔍 **Content Analysis**: Deep semantic analysis of extracted text  
+- 📊 **Document Structure**: Headers, sections, formatting analysis
+- 💭 **Sentiment Analysis**: Emotional tone and context understanding
+- 🎯 **Key Insights**: Important themes and actionable items
+- 📋 **Summary Generation**: Concise overviews and main points
+
+`;
+
+    if (unsupportedFiles.length > 0) {
+      response += `### ⚠️ Unsupported Files:
+${unsupportedFiles.map(f => `• **${f.name}** (${f.extension?.toUpperCase()}) - Not supported`).join('\n')}
+
+**Supported formats:** PDF, DOCX, DOC, TXT, Markdown
+
+`;
+    }
+
+    response += `### 🚀 Next Steps:
+1. Files will be automatically processed when uploaded
+2. Ask specific questions about the content
+3. Request analysis, summaries, or insights
+4. Compare multiple documents if needed
+
+**Try asking:** "Summarize the main points" or "What are the key themes?"`;
+
+    return response;
   };
 
   // Handle text-to-speech
@@ -947,6 +1373,9 @@ Previous conversation context:`;
 
     const files = Array.from(e.dataTransfer.files);
     setUploadedFiles(files);
+    if (files.length > 0 && currentMode === 'file-analysis') {
+      processUploadedFiles(files);
+    }
     toast.success(`${files.length} file(s) uploaded`);
   }, []);
 
@@ -1497,6 +1926,16 @@ Previous conversation context:`;
                 <div className="space-y-3">
                   <Label className="text-sm font-medium">Analysis Settings</Label>
                   <div className="space-y-2">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox 
+                        id="auto-analysis"
+                        checked={enableAutoAnalysis}
+                        onCheckedChange={(checked) => setEnableAutoAnalysis(checked as boolean)}
+                      />
+                      <Label htmlFor="auto-analysis" className="text-xs cursor-pointer">
+                        🚀 Auto-analyze uploaded files
+                      </Label>
+                    </div>
                     <div>
                       <Label className="text-xs">Analysis Type</Label>
                       <Select value={analysisType} onValueChange={setAnalysisType}>
@@ -1718,42 +2157,129 @@ Previous conversation context:`;
                   ref={fileInputRef}
                   type="file"
                   multiple
+                  accept=".pdf,.doc,.docx,.txt,.md,.markdown"
                   className="hidden"
                   title="Upload files for analysis"
                   aria-label="File upload"
                   onChange={(e) => {
                     const files = Array.from(e.target.files || []);
                     setUploadedFiles(files);
+                    if (files.length > 0 && currentMode === 'file-analysis') {
+                      processUploadedFiles(files);
+                    }
                   }}
                 />
               </div>
 
               {uploadedFiles.length > 0 && (
-                <div className="space-y-2">
-                  <h4 className="font-medium text-sm">Uploaded Files</h4>
-                  <ScrollArea className="h-32">
-                    {uploadedFiles.map((file, index) => (
-                      <div key={index} className="flex items-center justify-between p-2 bg-muted/50 rounded mb-2">
-                        <div className="flex items-center space-x-2">
-                          <FileText className="h-4 w-4" />
-                          <div>
-                            <p className="text-sm font-medium">{file.name}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {(file.size / 1024).toFixed(1)} KB
-                            </p>
-                          </div>
-                        </div>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-medium text-sm">Uploaded Files ({uploadedFiles.length})</h4>
+                    {currentMode === 'file-analysis' && (
+                      <div className="flex space-x-2">
                         <Button
-                          variant="ghost"
+                          variant="outline"
                           size="sm"
-                          onClick={() => {
-                            setUploadedFiles(prev => prev.filter((_, i) => i !== index));
-                          }}
+                          onClick={() => setPreviewMode(previewMode === 'extracted' ? 'original' : 'extracted')}
+                          className="text-xs"
                         >
-                          <X className="h-4 w-4" />
+                          {previewMode === 'extracted' ? 'Show Original' : 'Show Extracted'}
                         </Button>
                       </div>
-                    ))}
+                    )}
+                  </div>
+                  
+                  <ScrollArea className="h-48">
+                    {uploadedFiles.map((file, index) => {
+                      const extension = file.name.split('.').pop()?.toLowerCase();
+                      const isSupported = supportedFormats.includes(extension || '');
+                      const fileProgress = extractionProgress[file.name] || 0;
+                      const hasExtractedContent = extractedContent[file.name];
+                      const preview = documentPreviews[file.name];
+                      
+                      return (
+                        <div key={index} className="space-y-2 p-3 bg-muted/50 rounded-lg mb-3">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-2">
+                              <FileText className={`h-4 w-4 ${isSupported ? 'text-green-500' : 'text-red-500'}`} />
+                              <div>
+                                <p className="text-sm font-medium">{file.name}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  {(file.size / 1024).toFixed(1)} KB • {extension?.toUpperCase()}
+                                  {isSupported ? ' ✅' : ' ❌ Unsupported'}
+                                </p>
+                              </div>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleRemoveFile(file.name)}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                          
+                          {/* Extraction Progress */}
+                          {isSupported && currentMode === 'file-analysis' && (
+                            <div className="space-y-2">
+                              {isProcessingFiles && fileProgress > 0 && fileProgress < 100 && (
+                                <div className="space-y-1">
+                                  <div className="flex items-center justify-between text-xs">
+                                    <span>Extracting text...</span>
+                                    <span>{fileProgress.toFixed(0)}%</span>
+                                  </div>
+                                  <Progress value={fileProgress} className="h-1" />
+                                </div>
+                              )}
+                              
+                              {hasExtractedContent && preview && (
+                                <div className="space-y-2">
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center space-x-2 text-xs text-green-600">
+                                      <CheckCircle className="h-3 w-3" />
+                                      <span>Text extracted • {preview.wordCount} words</span>
+                                    </div>
+                                    <div className="flex space-x-1">
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => handlePreviewFile(file.name)}
+                                        className="h-6 text-xs"
+                                      >
+                                        <Eye className="h-3 w-3 mr-1" />
+                                        Preview
+                                      </Button>
+                                      {preview.type === 'pdf' && pdfPreviewData[file.name] && (
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() => {
+                                            window.open(pdfPreviewData[file.name].fileUrl, '_blank');
+                                          }}
+                                          className="h-6 text-xs"
+                                        >
+                                          <ExternalLink className="h-3 w-3 mr-1" />
+                                          PDF
+                                        </Button>
+                                      )}
+                                    </div>
+                                  </div>
+                                  
+                                  {previewMode === 'extracted' && (
+                                    <div className="bg-white border rounded p-2 text-xs">
+                                      <div className="font-medium mb-1">Preview:</div>
+                                      <div className="text-slate-600 line-clamp-3">
+                                        {preview.preview}
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                   </ScrollArea>
                 </div>
               )}
@@ -2216,6 +2742,173 @@ Previous conversation context:`;
         {/* Sidebar */}
         {renderSidebar()}
       </div>
+
+      {/* File Preview Modal */}
+      <Dialog open={showPreviewModal} onOpenChange={setShowPreviewModal}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden">
+          <DialogHeader>
+            <DialogTitle className="flex items-center space-x-2">
+              <FileText className="h-5 w-5" />
+              <span>File Preview - {selectedFileForPreview}</span>
+            </DialogTitle>
+          </DialogHeader>
+          
+          {selectedFileForPreview && (
+            <div className="space-y-4">
+              {/* Preview Mode Tabs */}
+              <Tabs value={previewMode} onValueChange={(value: any) => setPreviewMode(value)}>
+                <TabsList className="grid w-full grid-cols-3">
+                  <TabsTrigger value="extracted">Extracted Text</TabsTrigger>
+                  <TabsTrigger value="manual">Manual Edit</TabsTrigger>
+                  <TabsTrigger value="original">Original View</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="extracted" className="space-y-3">
+                  <div className="border rounded p-3 bg-muted/20">
+                    <div className="flex items-center justify-between mb-2">
+                      <Label className="text-sm font-medium">Auto-extracted Content</Label>
+                      <Badge variant="secondary" className="text-xs">
+                        {extractedContent[selectedFileForPreview]?.split(/\s+/).filter(w => w.length > 0).length || 0} words
+                      </Badge>
+                    </div>
+                    <ScrollArea className="h-96">
+                      <div className="text-sm whitespace-pre-wrap font-mono">
+                        {extractedContent[selectedFileForPreview] || 'No content extracted'}
+                      </div>
+                    </ScrollArea>
+                  </div>
+                  <div className="flex space-x-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        if (selectedFileForPreview) {
+                          setManualContent(prev => ({ 
+                            ...prev, 
+                            [selectedFileForPreview]: extractedContent[selectedFileForPreview] || '' 
+                          }));
+                          setPreviewMode('manual');
+                        }
+                      }}
+                    >
+                      <Copy className="h-4 w-4 mr-2" />
+                      Copy to Manual Edit
+                    </Button>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="manual" className="space-y-3">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-sm font-medium">Manual Content Editor</Label>
+                      <div className="flex space-x-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => selectedFileForPreview && handleResetToExtracted(selectedFileForPreview)}
+                        >
+                          <RotateCcw className="h-4 w-4 mr-2" />
+                          Reset to Extracted
+                        </Button>
+                        <Button
+                          variant="default"
+                          size="sm"
+                          onClick={() => selectedFileForPreview && handleUseManualContent(selectedFileForPreview)}
+                        >
+                          <Save className="h-4 w-4 mr-2" />
+                          Apply Changes
+                        </Button>
+                      </div>
+                    </div>
+                    <Textarea
+                      value={manualContent[selectedFileForPreview] || ''}
+                      onChange={(e) => selectedFileForPreview && handleManualContentChange(selectedFileForPreview, e.target.value)}
+                      placeholder="Edit the content manually..."
+                      className="min-h-96 font-mono text-sm"
+                    />
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                      <span>
+                        {manualContent[selectedFileForPreview]?.split(/\s+/).filter(w => w.length > 0).length || 0} words
+                      </span>
+                      <span>
+                        {manualContent[selectedFileForPreview]?.length || 0} characters
+                      </span>
+                    </div>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="original" className="space-y-3">
+                  {selectedFileForPreview && pdfPreviewData[selectedFileForPreview]?.type === 'pdf' && (
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-sm font-medium">PDF Document</Label>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => pdfPreviewData[selectedFileForPreview] && window.open(pdfPreviewData[selectedFileForPreview].fileUrl, '_blank')}
+                        >
+                          <ExternalLink className="h-4 w-4 mr-2" />
+                          Open in New Tab
+                        </Button>
+                      </div>
+                      <div className="border rounded p-3 bg-muted/20">
+                        <ScrollArea className="h-96">
+                          <div className="space-y-4">
+                            {pdfPreviewData[selectedFileForPreview]?.pages?.slice(0, 5).map((page: any) => (
+                              <div key={page.pageNumber} className="border-b pb-3">
+                                <div className="flex items-center justify-between mb-2">
+                                  <span className="text-sm font-medium">Page {page.pageNumber}</span>
+                                  <Badge variant="secondary" className="text-xs">{page.wordCount} words</Badge>
+                                </div>
+                                <div className="text-sm whitespace-pre-wrap font-mono bg-white p-2 rounded">
+                                  {page.text.substring(0, 500)}{page.text.length > 500 ? '...' : ''}
+                                </div>
+                              </div>
+                            ))}
+                            {pdfPreviewData[selectedFileForPreview]?.pages?.length > 5 && (
+                              <p className="text-sm text-muted-foreground text-center">
+                                ... and {pdfPreviewData[selectedFileForPreview].pages.length - 5} more pages
+                              </p>
+                            )}
+                          </div>
+                        </ScrollArea>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {selectedFileForPreview && documentPreviews[selectedFileForPreview]?.type === 'markdown' && (
+                    <div className="space-y-3">
+                      <Label className="text-sm font-medium">Markdown Preview</Label>
+                      <div className="border rounded p-3 bg-muted/20">
+                        <ScrollArea className="h-96">
+                          <div className="prose prose-sm max-w-none">
+                            <div dangerouslySetInnerHTML={{ 
+                              __html: documentPreviews[selectedFileForPreview]?.html || '' 
+                            }} />
+                          </div>
+                        </ScrollArea>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {selectedFileForPreview && !['pdf', 'markdown'].includes(documentPreviews[selectedFileForPreview]?.type) && (
+                    <div className="space-y-3">
+                      <Label className="text-sm font-medium">Text Content</Label>
+                      <div className="border rounded p-3 bg-muted/20">
+                        <ScrollArea className="h-96">
+                          <div className="text-sm whitespace-pre-wrap font-mono">
+                            {extractedContent[selectedFileForPreview] || 'No content available'}
+                          </div>
+                        </ScrollArea>
+                      </div>
+                    </div>
+                  )}
+                </TabsContent>
+              </Tabs>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
