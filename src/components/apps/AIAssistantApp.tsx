@@ -32,7 +32,6 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Progress } from '@/components/ui/progress';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 
 // Custom Markdown Components for better styling
@@ -227,8 +226,6 @@ interface ChatMessage {
     mode?: 'general' | 'data-mining' | 'file-analysis';
     dataQuery?: string;
     fileCount?: number;
-    isAutoAnalysis?: boolean;
-    analysisType?: string;
   };
 }
 
@@ -423,7 +420,6 @@ export const AIAssistantApp: React.FC = () => {
   const [isProcessingFiles, setIsProcessingFiles] = useState(false);
   const [supportedFormats] = useState(['pdf', 'doc', 'docx', 'txt', 'md', 'markdown']);
   const [extractionProgress, setExtractionProgress] = useState<{[key: string]: number}>({});
-  const [enableAutoAnalysis, setEnableAutoAnalysis] = useState(true);
   
   // Enhanced file preview states
   const [pdfPreviewData, setPdfPreviewData] = useState<{[key: string]: any}>({});
@@ -915,96 +911,6 @@ Previous conversation context:`;
     setDocumentPreviews(prev => ({ ...prev, ...newPreviews }));
     setUploadedFiles(prev => [...prev, ...files]);
     setIsProcessingFiles(false);
-    
-    // Auto-generate analysis summary after successful file processing (if enabled)
-    if (enableAutoAnalysis && Object.keys(newExtractedContent).length > 0) {
-      setTimeout(() => {
-        generateAutoAnalysis(files, newExtractedContent);
-      }, 1000); // Small delay to let UI update
-    }
-  };
-
-  // Auto-generate analysis summary for uploaded files
-  const generateAutoAnalysis = async (files: File[], extractedContent: {[key: string]: string}) => {
-    try {
-      const analysisPrompt = `I have successfully processed and extracted content from ${files.length} document(s). Please provide a comprehensive initial analysis including:
-
-## 📄 Document Overview
-- Brief summary of each document
-- Document type and purpose identification
-- Key sections or structure analysis
-
-## 🔍 Content Analysis  
-- Main topics and themes identified
-- Important information highlighted
-- Key insights and findings
-
-## 📊 Document Statistics
-- Content volume and complexity
-- Language and writing style analysis
-- Technical vs general content assessment
-
-## 💡 Initial Insights
-- Notable patterns or trends
-- Potential areas for deeper analysis
-- Suggested follow-up questions
-
-## 🎯 Recommended Actions
-- What specific analyses would be most valuable
-- Questions I should ask about this content
-- How to best utilize this information
-
-Please analyze the uploaded documents and provide this comprehensive overview to help me understand what I'm working with.`;
-
-      // Create a system message showing the analysis is starting
-      const analysisMessage: ChatMessage = {
-        id: Date.now().toString(),
-        role: 'assistant',
-        content: '🔄 **Analyzing uploaded documents...** \n\nGenerating comprehensive analysis of your uploaded files. This will include document overview, content analysis, key insights, and recommended actions.',
-        type: 'text',
-        timestamp: new Date(),
-        metadata: { 
-          mode: 'file-analysis',
-          isAutoAnalysis: true
-        }
-      };
-
-      // Add the analysis message to chat
-      setChatTabs(prev => prev.map(tab => 
-        tab.id === activeTabId 
-          ? { ...tab, messages: [...tab.messages, analysisMessage] }
-          : tab
-      ));
-
-      // Call Gemini API for analysis
-      const finalPrompt = generateFileAnalysisPrompt(analysisPrompt, files, extractedContent);
-      const response = await callGeminiAPI(finalPrompt, activeTab?.messages || []);
-      
-      // Add the analysis response
-      const responseMessage: ChatMessage = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: response,
-        type: 'text',
-        timestamp: new Date(),
-        metadata: { 
-          mode: 'file-analysis',
-          isAutoAnalysis: true,
-          analysisType: 'comprehensive-overview'
-        }
-      };
-
-      setChatTabs(prev => prev.map(tab => 
-        tab.id === activeTabId 
-          ? { ...tab, messages: [...tab.messages.slice(0, -1), responseMessage] }
-          : tab
-      ));
-
-      toast.success('✅ Auto-analysis completed!');
-    } catch (error) {
-      console.error('Auto-analysis failed:', error);
-      toast.error('Failed to generate auto-analysis');
-    }
   };
 
   // Enhanced file analysis prompt engineering
@@ -1926,16 +1832,6 @@ ${unsupportedFiles.map(f => `• **${f.name}** (${f.extension?.toUpperCase()}) -
                 <div className="space-y-3">
                   <Label className="text-sm font-medium">Analysis Settings</Label>
                   <div className="space-y-2">
-                    <div className="flex items-center space-x-2">
-                      <Checkbox 
-                        id="auto-analysis"
-                        checked={enableAutoAnalysis}
-                        onCheckedChange={(checked) => setEnableAutoAnalysis(checked as boolean)}
-                      />
-                      <Label htmlFor="auto-analysis" className="text-xs cursor-pointer">
-                        🚀 Auto-analyze uploaded files
-                      </Label>
-                    </div>
                     <div>
                       <Label className="text-xs">Analysis Type</Label>
                       <Select value={analysisType} onValueChange={setAnalysisType}>
