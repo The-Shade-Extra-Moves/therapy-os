@@ -24,8 +24,10 @@ interface WindowStore {
   maximizeWindow: (id: string) => void;
   restoreWindow: (id: string) => void;
   setActiveWindow: (id: string) => void;
+  bringToFront: (id: string) => void;
   updateWindowPosition: (id: string, position: { x: number; y: number }) => void;
   updateWindowSize: (id: string, size: { width: number; height: number }) => void;
+  updateWindow: (id: string, updates: Partial<WindowState>) => void;
 }
 
 export const useWindowStore = create<WindowStore>((set, get) => ({
@@ -62,12 +64,30 @@ export const useWindowStore = create<WindowStore>((set, get) => ({
   },
 
   minimizeWindow: (id) => {
-    set((state) => ({
-      windows: state.windows.map(w => 
-        w.id === id ? { ...w, isMinimized: true, isActive: false } : w
-      ),
-      activeWindowId: state.windows.find(w => w.id !== id && !w.isMinimized)?.id || null,
-    }));
+    set((state) => {
+      const windowToMinimize = state.windows.find(w => w.id === id);
+      if (!windowToMinimize) return state;
+      
+      // Find the next highest z-index window to make active
+      const otherWindows = state.windows
+        .filter(w => w.id !== id && !w.isMinimized)
+        .sort((a, b) => b.zIndex - a.zIndex);
+      
+      const newActiveId = otherWindows.length > 0 ? otherWindows[0].id : null;
+      
+      return {
+        windows: state.windows.map(w => {
+          if (w.id === id) {
+            return { ...w, isMinimized: true, isActive: false };
+          } else if (w.id === newActiveId) {
+            return { ...w, isActive: true };
+          } else {
+            return { ...w, isActive: false };
+          }
+        }),
+        activeWindowId: newActiveId,
+      };
+    });
   },
 
   maximizeWindow: (id) => {
@@ -79,12 +99,23 @@ export const useWindowStore = create<WindowStore>((set, get) => ({
   },
 
   restoreWindow: (id) => {
-    set((state) => ({
-      windows: state.windows.map(w => 
-        w.id === id ? { ...w, isMinimized: false, isActive: true } : { ...w, isActive: false }
-      ),
-      activeWindowId: id,
-    }));
+    set((state) => {
+      const windowToRestore = state.windows.find(w => w.id === id);
+      if (!windowToRestore) return state;
+      
+      // Give it the highest z-index when restoring
+      const newZIndex = state.nextZIndex;
+      
+      return {
+        windows: state.windows.map(w => 
+          w.id === id 
+            ? { ...w, isMinimized: false, isActive: true, zIndex: newZIndex }
+            : { ...w, isActive: false }
+        ),
+        activeWindowId: id,
+        nextZIndex: state.nextZIndex + 1,
+      };
+    });
   },
 
   setActiveWindow: (id) => {
@@ -95,9 +126,35 @@ export const useWindowStore = create<WindowStore>((set, get) => ({
       return {
         windows: state.windows.map(w => ({ ...w, isActive: w.id === id })),
         activeWindowId: id,
+      };
+    });
+  },
+
+  bringToFront: (id) => {
+    set((state) => {
+      const window = state.windows.find(w => w.id === id);
+      if (!window) return state;
+
+      const newZIndex = state.nextZIndex;
+      
+      return {
+        windows: state.windows.map(w => 
+          w.id === id 
+            ? { ...w, zIndex: newZIndex, isActive: true, isMinimized: false }
+            : { ...w, isActive: false }
+        ),
+        activeWindowId: id,
         nextZIndex: state.nextZIndex + 1,
       };
     });
+  },
+
+  updateWindow: (id, updates) => {
+    set((state) => ({
+      windows: state.windows.map(w => 
+        w.id === id ? { ...w, ...updates } : w
+      ),
+    }));
   },
 
   updateWindowPosition: (id, position) => {

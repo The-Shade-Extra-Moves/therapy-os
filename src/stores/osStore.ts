@@ -43,6 +43,12 @@ export interface AppearanceSettings {
   transparency: number;
   accentColor?: string;
   fontFamily?: string;
+  
+  // Vanta.js background settings
+  vantaEnabled?: boolean;
+  vantaPerformance?: 'high' | 'medium' | 'low';
+  showVantaControls?: boolean;
+  vantaAdaptive?: boolean;
 }
 
 export interface VirtualDesktop {
@@ -54,6 +60,8 @@ export interface VirtualDesktop {
   widgets: string[];
 }
 
+export type DesktopMode = 'normal' | 'icons' | 'widgets' | 'windows';
+
 interface OSStore {
   // Authentication
   isLoggedIn: boolean;
@@ -64,6 +72,7 @@ interface OSStore {
   widgets: Widget[];
   selectedIcons: string[];
   virtualDesktops: VirtualDesktop[];
+  desktopMode: DesktopMode;
   
   // Appearance
   appearance: AppearanceSettings;
@@ -89,6 +98,9 @@ interface OSStore {
   
   updateAppearance: (settings: Partial<AppearanceSettings>) => void;
   
+  // Desktop Mode Management
+  setDesktopMode: (mode: DesktopMode) => void;
+  
   // Virtual Desktops
   addVirtualDesktop: (name?: string) => void;
   removeVirtualDesktop: (id: string) => void;
@@ -101,8 +113,16 @@ interface OSStore {
 }
 
 export const useOSStore = create<OSStore>((set, get) => ({
-  isLoggedIn: false,
-  currentUser: null,
+  isLoggedIn: true,
+  currentUser: {
+    id: 'user-1',
+    email: 'dr.jane.smith@example.com',
+    name: 'Dr. Jane Smith',
+    avatar: '/avatars/dr-jane-smith.png',
+    role: 'therapist'
+  },
+  
+  desktopMode: 'normal' as DesktopMode,
   
   desktopIcons: [
     {
@@ -321,6 +341,10 @@ export const useOSStore = create<OSStore>((set, get) => ({
     iconSize: 'medium',
     animations: true,
     transparency: 0.85,
+    vantaEnabled: false,
+    vantaPerformance: 'medium',
+    vantaAdaptive: true,
+    showVantaControls: true,
   },
   
   isLoginScreenVisible: true,
@@ -401,6 +425,11 @@ export const useOSStore = create<OSStore>((set, get) => ({
   
   updateAppearance: (settings) => set((state) => ({
     appearance: { ...state.appearance, ...settings }
+  })),
+  
+  // Desktop Mode Actions
+  setDesktopMode: (mode) => set(() => ({
+    desktopMode: mode
   })),
   
   // Virtual Desktop Actions

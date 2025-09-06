@@ -207,6 +207,90 @@ export const Settings: React.FC = () => {
 
       <Card>
         <CardHeader>
+          <CardTitle>Interactive Background</CardTitle>
+          <CardDescription>Immersive WebGL animated backgrounds for therapy environments</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <Label>Enable Vanta.js Backgrounds</Label>
+              <p className="text-sm text-muted-foreground">Dynamic 3D animated environments</p>
+            </div>
+            <Switch
+              checked={appearance.vantaEnabled || false}
+              onCheckedChange={(checked) => updateAppearance({ vantaEnabled: checked })}
+            />
+          </div>
+
+          {appearance.vantaEnabled && (
+            <>
+              <div className="space-y-3">
+                <Label>Performance Mode</Label>
+                <Select 
+                  value={appearance.vantaPerformance || 'medium'}
+                  onValueChange={(value) => updateAppearance({ vantaPerformance: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="high">High Quality</SelectItem>
+                    <SelectItem value="medium">Balanced</SelectItem>
+                    <SelectItem value="low">Performance Mode</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label>Show Environment Controls</Label>
+                  <p className="text-sm text-muted-foreground">Display therapy environment adjustment panel</p>
+                </div>
+                <Switch
+                  checked={appearance.showVantaControls || false}
+                  onCheckedChange={(checked) => updateAppearance({ showVantaControls: checked })}
+                />
+              </div>
+
+              <div className="space-y-3">
+                <Label>Adaptive Mode</Label>
+                <p className="text-sm text-muted-foreground">
+                  Automatically adjust environment based on time of day and therapy context
+                </p>
+                <Switch
+                  checked={appearance.vantaAdaptive !== false}
+                  onCheckedChange={(checked) => updateAppearance({ vantaAdaptive: checked })}
+                />
+              </div>
+
+              <div className="p-3 bg-muted rounded-lg">
+                <div className="text-sm font-medium mb-2">Therapy Environment Presets</div>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div className="flex items-center space-x-1">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    <span>Relaxation: Calming waves</span>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    <span>Focus: Neural networks</span>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                    <span>Energy: Flying birds</span>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                    <span>Anxiety: Gentle fog</span>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
           <CardTitle>Window Effects</CardTitle>
           <CardDescription>Control transparency and visual effects</CardDescription>
         </CardHeader>

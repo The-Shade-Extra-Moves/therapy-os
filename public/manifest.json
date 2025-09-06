@@ -1,0 +1,35 @@
+{
+  "name": "Therapy OS",
+  "short_name": "TherapyOS",
+  "description": "Professional therapy management operating system with immersive environments",
+  "version": "1.0.0",
+  "manifest_version": 3,
+  "theme_color": "#4a90e2",
+  "background_color": "#0a1628",
+  "display": "standalone",
+  "orientation": "landscape",
+  "start_url": "/",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "any",
+      "type": "image/x-icon"
+    }
+  ],
+  "categories": ["health", "medical", "productivity"],
+  "shortcuts": [
+    {
+      "name": "AI Assistant",
+      "short_name": "AI",
+      "description": "Launch AI therapy assistant",
+      "url": "/?app=ai-assistant"
+    },
+    {
+      "name": "Patient Manager",
+      "short_name": "Patients",
+      "description": "Manage patient records",
+      "url": "/?app=patient-manager"
+    }
+  ]
+}

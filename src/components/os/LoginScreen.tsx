@@ -35,6 +35,7 @@ export const LoginScreen: React.FC = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [showLoginForm, setShowLoginForm] = useState(false);
   const { login } = useOSStore();
 
   const handleLogin = async () => {
@@ -58,27 +59,72 @@ export const LoginScreen: React.FC = () => {
     setPassword('');
   };
 
+  const handleShowLoginForm = () => {
+    setShowLoginForm(true);
+  };
+
   return (
     <motion.div
-      className="fixed inset-0 z-[9999] bg-gradient-desktop flex items-center justify-center"
+      className="fixed inset-0 z-[9999] flex items-center justify-center"
+      style={{
+        backgroundImage: 'url(/img1.png)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat'
+      }}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
     >
+      {/* Background Overlay for better readability */}
+      <div className="absolute inset-0 bg-black/40" />
+      
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-10">
         <div className="absolute inset-0 bg-[radial-gradient(circle_500px_at_50%_200px,hsl(var(--primary)/0.3),transparent)]" />
       </div>
 
       {/* Login Container */}
-      <motion.div
-        className="w-full max-w-md mx-4"
-        initial={{ y: 50, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.2, duration: 0.6 }}
-      >
-        <Card className="glass-surface border-0 shadow-2xl">
+      <AnimatePresence mode="wait">
+        {!showLoginForm ? (
+          /* Initial Login Button */
+          <motion.div
+            key="login-button"
+            className="relative z-10"
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.8, opacity: 0 }}
+            transition={{ duration: 0.5, type: "spring", stiffness: 200 }}
+          >
+            <motion.button
+              onClick={handleShowLoginForm}
+              className="group w-24 h-24 bg-white/20 backdrop-blur-lg rounded-full border border-white/30 shadow-2xl flex items-center justify-center hover:bg-white/30 transition-all duration-300"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <User className="w-10 h-10 text-white group-hover:text-white/90 transition-colors" />
+            </motion.button>
+            <motion.p
+              className="text-white text-center mt-4 text-sm font-medium"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+            >
+              Click to Login
+            </motion.p>
+          </motion.div>
+        ) : (
+          /* Login Form */
+          <motion.div
+            key="login-form"
+            className="w-full max-w-md mx-4 relative z-10"
+            initial={{ y: 50, opacity: 0, scale: 0.9 }}
+            animate={{ y: 0, opacity: 1, scale: 1 }}
+            exit={{ y: 50, opacity: 0, scale: 0.9 }}
+            transition={{ duration: 0.6, type: "spring", stiffness: 120 }}
+          >
+            <Card className="glass-surface border-0 shadow-2xl bg-background/95 backdrop-blur-lg">
           <CardHeader className="text-center pb-2">
             <motion.div
               className="mx-auto mb-4"
@@ -208,16 +254,18 @@ export const LoginScreen: React.FC = () => {
             )}
           </CardContent>
         </Card>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-        {/* Footer */}
-        <motion.div
-          className="text-center mt-6 text-xs text-muted-foreground"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1 }}
-        >
-          ReMotionOS v1.0 • Secure Therapy Environment
-        </motion.div>
+      {/* Footer */}
+      <motion.div
+        className="text-center mt-6 text-xs text-muted-foreground relative z-10"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1 }}
+      >
+        ReMotionOS v1.0 • Secure Therapy Environment
       </motion.div>
     </motion.div>
   );
