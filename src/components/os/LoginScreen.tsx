@@ -9,22 +9,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 const mockUsers = [
   {
     id: '1',
-    name: 'Dr. Sarah Johnson',
-    email: 'sarah.johnson@remotionos.com',
-    avatar: '👩‍⚕️',
+    name: 'Ahmed Nabli',
+    email: 'ahmed.nabli@remotionos.com',
+    avatar: '�‍⚕️',
     role: 'therapist' as const,
   },
   {
     id: '2', 
-    name: 'Dr. Michael Chen',
-    email: 'michael.chen@remotionos.com',
-    avatar: '👨‍⚕️',
-    role: 'therapist' as const,
-  },
-  {
-    id: '3',
-    name: 'Admin User',
-    email: 'admin@remotionos.com', 
+    name: 'Nassim Ben Nsib',
+    email: 'nassim.bennsib@remotionos.com',
     avatar: '👨‍💼',
     role: 'admin' as const,
   },
