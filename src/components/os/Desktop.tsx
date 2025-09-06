@@ -1,6 +1,6 @@
 
 import React, { lazy, Suspense } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useWindowStore } from '@/stores/windowStore';
 import { Window } from './Window';
 import { Taskbar } from './Taskbar';
@@ -75,7 +75,7 @@ const AppComponents = {
 };
 
 export const Desktop: React.FC = () => {
-  const { windows, bringToFront } = useWindowStore();
+  const { windows, bringToFront, getFullScreenWindow, setActiveWindow, popInWindow, closeWindow } = useWindowStore();
   const { desktopIcons, widgets, clearSelection, appearance, virtualDesktops, desktopMode } = useOSStore();
   const [isWidgetPanelOpen, setIsWidgetPanelOpen] = React.useState(false);
   const [isNotificationCenterOpen, setIsNotificationCenterOpen] = React.useState(false);
@@ -87,6 +87,60 @@ export const Desktop: React.FC = () => {
   const [wallpaperTransitions, setWallpaperTransitions] = React.useState(true);
   const [wallpaperStatic, setWallpaperStatic] = React.useState(false);
   const [mousePos, setMousePos] = React.useState({ x: 0, y: 0 });
+  
+  // Check if any window is in full screen mode
+  const fullScreenWindow = getFullScreenWindow();
+
+  // Handle messages from popout windows
+  React.useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      const { type, windowId } = event.data;
+      
+      switch (type) {
+        case 'RETURN_WINDOW':
+          // Restore window from popout
+          if (windowId) {
+            popInWindow(windowId, event.source as Window);
+          }
+          break;
+        case 'CLOSE_EXTERNAL_WINDOW':
+          // Close window completely when popout is closed
+          if (windowId) {
+            closeWindow(windowId);
+          }
+          break;
+        case 'POPOUT_CLOSED':
+          // Handle unexpected popout closure
+          if (windowId) {
+            popInWindow(windowId, event.source as Window);
+          }
+          break;
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [popInWindow, closeWindow]);
+
+  // Alt+Tab window switching
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.altKey && e.key === 'Tab') {
+        e.preventDefault();
+        const visibleWindows = windows.filter(w => !w.isMinimized);
+        if (visibleWindows.length > 0) {
+          const currentIndex = visibleWindows.findIndex(w => w.isActive);
+          const nextIndex = (currentIndex + 1) % visibleWindows.length;
+          const nextWindow = visibleWindows[nextIndex];
+          setActiveWindow(nextWindow.id);
+          bringToFront(nextWindow.id);
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [windows, setActiveWindow, bringToFront]);
   
   // Focus management for intelligent layering
   const [focusedElement, setFocusedElement] = React.useState<{ type: 'window' | 'widget' | 'icon', id: string } | null>(null);
@@ -413,16 +467,18 @@ export const Desktop: React.FC = () => {
           onClose={() => setIsNotificationCenterOpen(false)} 
         />
 
-        {/* Taskbar */}
-        <Taskbar 
-          onOpenWidgets={() => setIsWidgetPanelOpen(true)}
-          onOpenNotifications={() => setIsNotificationCenterOpen(true)}
-          onActivateScreensaver={() => setIsScreensaverActive(true)}
-          onOpenVantaController={() => setIsVantaControllerOpen(true)}
-          onCloseVantaController={() => setIsVantaControllerOpen(false)}
-          isVantaControllerOpen={isVantaControllerOpen}
-          onOpenWallpaperSettings={() => setIsWallpaperSettingsOpen(true)}
-        />
+        {/* Taskbar - Hidden when in full screen */}
+        {!fullScreenWindow && (
+          <Taskbar 
+            onOpenWidgets={() => setIsWidgetPanelOpen(true)}
+            onOpenNotifications={() => setIsNotificationCenterOpen(true)}
+            onActivateScreensaver={() => setIsScreensaverActive(true)}
+            onOpenVantaController={() => setIsVantaControllerOpen(true)}
+            onCloseVantaController={() => setIsVantaControllerOpen(false)}
+            isVantaControllerOpen={isVantaControllerOpen}
+            onOpenWallpaperSettings={() => setIsWallpaperSettingsOpen(true)}
+          />
+        )}
 
         {/* Screensaver */}
         <Screensaver 

@@ -27,7 +27,8 @@ import {
   Package,
   Palette,
   Wallpaper,
-  Image
+  Image,
+  ExternalLink
 } from 'lucide-react';
 import { useWindowStore, WindowState } from '@/stores/windowStore';
 import { useOSStore } from '@/stores/osStore';
@@ -257,9 +258,11 @@ const TaskbarWindowItem = React.forwardRef<HTMLDivElement, TaskbarWindowItemProp
               flex items-center gap-2 text-sm font-medium transition-all duration-200
               ${window.isActive && !window.isMinimized
                 ? 'bg-primary/20 text-primary border border-primary/30 shadow-sm' 
-                : window.isMinimized
-                  ? 'bg-muted/30 hover:bg-muted/50 text-muted-foreground hover:text-foreground opacity-70'
-                  : 'bg-muted/50 hover:bg-muted text-muted-foreground hover:text-foreground'
+                : window.isPoppedOut
+                  ? 'bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 hover:text-purple-200 border border-purple-500/20'
+                  : window.isMinimized
+                    ? 'bg-muted/30 hover:bg-muted/50 text-muted-foreground hover:text-foreground opacity-70'
+                    : 'bg-muted/50 hover:bg-muted text-muted-foreground hover:text-foreground'
               }
               ${window.isMinimized ? 'border-dashed border-muted-foreground/20' : ''}
             `}
@@ -288,7 +291,12 @@ const TaskbarWindowItem = React.forwardRef<HTMLDivElement, TaskbarWindowItemProp
           
           {/* Window State Indicators */}
           <div className="flex items-center gap-1">
-            {window.isMinimized && (
+            {window.isPoppedOut && (
+              <div className="w-2.5 h-2.5 bg-purple-400 rounded-sm flex items-center justify-center" title="Opened in external window">
+                <ExternalLink className="w-1.5 h-1.5 text-white" />
+              </div>
+            )}
+            {window.isMinimized && !window.isPoppedOut && (
               <div className="w-2 h-2 bg-muted-foreground/40 rounded-full animate-pulse" />
             )}
             {window.isMaximized && !window.isMinimized && (
@@ -306,12 +314,22 @@ const TaskbarWindowItem = React.forwardRef<HTMLDivElement, TaskbarWindowItemProp
           )}
           
           {/* Minimized indicator */}
-          {window.isMinimized && (
+          {window.isMinimized && !window.isPoppedOut && (
             <motion.div
               className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-4 h-0.5 bg-muted-foreground/50 rounded-full"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.2 }}
+            />
+          )}
+          
+          {/* Popped out indicator */}
+          {window.isPoppedOut && (
+            <motion.div
+              className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-6 h-0.5 bg-purple-400 rounded-full"
+              initial={{ opacity: 0, scale: 0 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3 }}
             />
           )}
         </motion.div>
@@ -452,6 +470,8 @@ export const Taskbar: React.FC<TaskbarProps> = ({
         component: app.component,
         isMinimized: false,
         isMaximized: false,
+        isFullScreen: false,
+        isPoppedOut: false,
         position: { x: 100 + Math.random() * 200, y: 100 + Math.random() * 200 },
         size: { width: 800, height: 600 },
       });

@@ -5,6 +5,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Suspense } from "react";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
+import { PopoutWindow } from "./pages/PopoutWindow";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ErrorFallback } from "./components/ErrorFallback";
 import { TherapySystemProvider } from "@/contexts/TherapySystemContext";
@@ -49,6 +50,7 @@ const App = () => (
               <ErrorBoundary fallback={<ErrorFallback title="Page Error" />}>
                 <Routes>
                   <Route path="/" element={<Index />} />
+                  <Route path="/popout" element={<PopoutWindow />} />
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>

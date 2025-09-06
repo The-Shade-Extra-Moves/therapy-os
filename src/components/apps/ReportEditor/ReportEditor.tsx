@@ -40,6 +40,19 @@ import {
   RefreshCw, Minimize2
 } from 'lucide-react';
 
+/*
+ * Z-Index Hierarchy for ReportEditor:
+ * - Window base: z-9999 (active window in Window.tsx)
+ * - Loading Overlay: z-[10002] (highest priority - blocks all interaction)  
+ * - AI Result Panel: z-[10001] (modal overlay)
+ * - Voice Control Panel: z-[10000] (floating panel)
+ * - Color/Highlight Pickers: z-[10004] (tooltip-style overlays)
+ * - Dropdown Menus: z-[10003] (AI tools, export, voice settings menus)
+ * 
+ * This ensures proper layering within the window context while staying above
+ * the base window z-index to prevent conflicts with other windows.
+ */
+
 // Extend Window interface for Speech Recognition
 declare global {
   interface Window {
@@ -1157,7 +1170,7 @@ export const ReportEditor: React.FC = () => {
                 <ChevronDown className="h-4 w-4 ml-1" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-64">
+            <DropdownMenuContent align="start" className="w-64 z-[10003]">
               {exportFormats.map((format) => {
                 const Icon = format.icon;
                 return (
@@ -1230,7 +1243,7 @@ export const ReportEditor: React.FC = () => {
                 <Settings className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-72 p-4">
+            <DropdownMenuContent align="start" className="w-72 p-4 z-[10003]">
               <div className="space-y-4">
                 <div>
                   <Label className="text-sm font-medium">Language</Label>
@@ -1416,7 +1429,7 @@ export const ReportEditor: React.FC = () => {
               <Type className="h-4 w-4" />
             </Button>
             {showColorPicker && (
-              <div className="absolute top-full mt-1 p-2 bg-popover border rounded-md shadow-lg z-50">
+              <div className="absolute top-full mt-1 p-2 bg-popover border rounded-md shadow-lg z-[10004]">
                 <div className="grid grid-cols-5 gap-1">
                   {textColors.map((color) => (
                     <Button
@@ -1446,7 +1459,7 @@ export const ReportEditor: React.FC = () => {
               <Highlighter className="h-4 w-4" />
             </Button>
             {showHighlightPicker && (
-              <div className="absolute top-full mt-1 p-2 bg-popover border rounded-md shadow-lg z-50">
+              <div className="absolute top-full mt-1 p-2 bg-popover border rounded-md shadow-lg z-[10004]">
                 <div className="grid grid-cols-5 gap-1">
                   {highlightColors.map((color) => (
                     <Button
@@ -1505,7 +1518,7 @@ export const ReportEditor: React.FC = () => {
                 <ChevronDown className="h-4 w-4 ml-1" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-80">
+            <DropdownMenuContent align="start" className="w-80 z-[10003]">
               {aiEnhancements.map((enhancement) => {
                 const Icon = enhancement.icon;
                 
@@ -1659,7 +1672,7 @@ export const ReportEditor: React.FC = () => {
             
             {/* Floating Voice Control Panel */}
             {isListening && (
-              <div className="fixed bottom-20 right-6 bg-card border rounded-lg shadow-lg p-4 z-50 w-80">
+              <div className="fixed bottom-20 right-6 bg-card border rounded-lg shadow-lg p-4 z-[10000] w-80">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <div className="relative">
@@ -1746,7 +1759,7 @@ export const ReportEditor: React.FC = () => {
 
             {/* AI Result Panel */}
             {showAiResult && (
-              <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-card border rounded-lg shadow-xl p-6 z-50 w-[600px] max-h-[500px]">
+              <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-card border rounded-lg shadow-xl p-6 z-[10001] w-[600px] max-h-[500px]">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
                     <Wand2 className="h-5 w-5 text-primary" />
@@ -1782,7 +1795,7 @@ export const ReportEditor: React.FC = () => {
 
             {/* Loading Overlay for AI Processing */}
             {isAiProcessing && (
-              <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 flex items-center justify-center">
+              <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-[10002] flex items-center justify-center">
                 <div className="bg-card p-6 rounded-lg shadow-xl border">
                   <div className="flex items-center gap-3">
                     <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
