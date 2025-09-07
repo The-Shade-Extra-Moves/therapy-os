@@ -8,6 +8,8 @@ import VantaController from './VantaController';
 import DynamicWallpaper from './DynamicWallpaper';
 import WallpaperSettings from './WallpaperSettings';
 import Screensaver from './Screensaver';
+import { SpotlightSearch } from './SpotlightSearch';
+import { ShortcutsPopup } from './ShortcutsPopup';
 import { Button } from '@/components/ui/button';
 import './Desktop.css';
 
@@ -24,7 +26,10 @@ import { TaskManager as TaskManagerApp } from '@/components/apps/TaskManager';
 import { FileExplorer } from '@/components/apps/FileExplorer';
 import { ContactManager } from '@/components/apps/ContactManager';
 import { MeetingApp } from '@/components/apps/MeetingApp';
-import { NotePadPro, SearchBrowser, AISearchApp } from '@/components/apps';
+import { CalculatorApp } from '@/components/apps/CalculatorApp';
+import { CameraApp } from '@/components/apps/CameraApp';
+import { TimeManagementApp } from '@/components/apps/TimeManagementApp';
+import { NotePadPro, SearchBrowser, AISearchApp, ReMotionTalk, ReMotionMeet } from '@/components/apps';
 
 const AppBuilderApp = lazy(() => import('@/components/apps/AppBuilderApp'));
 const AITherapistApp = lazy(() => import('@/components/apps/AITherapistApp'));
@@ -72,6 +77,11 @@ const AppComponents = {
   SystemTaskManager: TaskManager,
   FileManager: VirtualFileSystem,
   AccessibilityPanel: AccessibilityPanel,
+  CalculatorApp,
+  CameraApp,
+  TimeManagementApp,
+  ReMotionTalk,
+  ReMotionMeet,
 };
 
 export const Desktop: React.FC = () => {
@@ -82,6 +92,8 @@ export const Desktop: React.FC = () => {
   const [isScreensaverActive, setIsScreensaverActive] = React.useState(false);
   const [isVantaControllerOpen, setIsVantaControllerOpen] = React.useState(false);
   const [isWallpaperSettingsOpen, setIsWallpaperSettingsOpen] = React.useState(false);
+  const [isSpotlightOpen, setIsSpotlightOpen] = React.useState(false);
+  const [isShortcutsOpen, setIsShortcutsOpen] = React.useState(true);
   const [wallpaperCategory, setWallpaperCategory] = React.useState('nature');
   const [wallpaperInterval, setWallpaperInterval] = React.useState(10);
   const [wallpaperTransitions, setWallpaperTransitions] = React.useState(true);
@@ -122,9 +134,10 @@ export const Desktop: React.FC = () => {
     return () => window.removeEventListener('message', handleMessage);
   }, [popInWindow, closeWindow]);
 
-  // Alt+Tab window switching
+  // Alt+Tab window switching and global shortcuts
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Alt+Tab window switching
       if (e.altKey && e.key === 'Tab') {
         e.preventDefault();
         const visibleWindows = windows.filter(w => !w.isMinimized);
@@ -136,11 +149,32 @@ export const Desktop: React.FC = () => {
           bringToFront(nextWindow.id);
         }
       }
+      
+      // Cmd+Space for Spotlight Search (or Ctrl+Space on Windows)
+      if ((e.metaKey || e.ctrlKey) && e.key === ' ') {
+        e.preventDefault();
+        setIsSpotlightOpen(prev => !prev);
+      }
+      
+      // Cmd+? for Keyboard Shortcuts (or Ctrl+? on Windows)
+      if ((e.metaKey || e.ctrlKey) && e.key === '/') {
+        e.preventDefault();
+        setIsShortcutsOpen(prev => !prev);
+      }
+      
+      // Escape to close any open overlays
+      if (e.key === 'Escape') {
+        if (isSpotlightOpen) {
+          setIsSpotlightOpen(false);
+        } else if (isShortcutsOpen) {
+          setIsShortcutsOpen(false);
+        }
+      }
     };
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [windows, setActiveWindow, bringToFront]);
+  }, [windows, setActiveWindow, bringToFront, isSpotlightOpen, isShortcutsOpen]);
   
   // Focus management for intelligent layering
   const [focusedElement, setFocusedElement] = React.useState<{ type: 'window' | 'widget' | 'icon', id: string } | null>(null);
@@ -501,6 +535,18 @@ export const Desktop: React.FC = () => {
           onIntervalChange={setWallpaperInterval}
           onTransitionsToggle={setWallpaperTransitions}
           onStaticToggle={setWallpaperStatic}
+        />
+
+        {/* Spotlight Search */}
+        <SpotlightSearch
+          isOpen={isSpotlightOpen}
+          onClose={() => setIsSpotlightOpen(false)}
+        />
+
+        {/* Keyboard Shortcuts */}
+        <ShortcutsPopup
+          isOpen={isShortcutsOpen}
+          onClose={() => setIsShortcutsOpen(false)}
         />
       </div>
     </DesktopContextMenu>

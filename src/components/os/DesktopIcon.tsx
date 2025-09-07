@@ -7,7 +7,7 @@ import {
   MessageSquare, BookOpen, BarChart3, Shield,
   Sparkles, Waves, TreePine, Edit, Contact,
   Video, Code, FileEdit, Hammer, Zap, Phone,
-  Globe, Mail
+  Globe, Mail, Calculator, Timer, MessageCircle
 } from 'lucide-react';
 import { useOSStore, DesktopIcon as DesktopIconType } from '@/stores/osStore';
 import { useWindowStore } from '@/stores/windowStore';
@@ -209,6 +209,56 @@ const ICON_CONFIG = {
     gradient: 'from-gray-500 to-gray-600',
     category: 'other',
     description: 'Application'
+  },
+  
+  // Calculator
+  'CalculatorApp': { 
+    icon: Calculator, 
+    color: 'bg-gray-800', 
+    accent: 'text-gray-100',
+    gradient: 'from-gray-800 to-gray-900',
+    category: 'tools',
+    description: 'macOS-style calculator with history'
+  },
+  
+  // Camera
+  'CameraApp': { 
+    icon: Camera, 
+    color: 'bg-slate-700', 
+    accent: 'text-slate-100',
+    gradient: 'from-slate-700 to-slate-800',
+    category: 'creative',
+    description: 'Camera app for photos and videos'
+  },
+  
+  // Time Management
+  'TimeManagementApp': { 
+    icon: Timer, 
+    color: 'bg-indigo-600', 
+    accent: 'text-indigo-100',
+    gradient: 'from-indigo-600 to-purple-600',
+    category: 'tools',
+    description: 'Pomodoro timer and productivity focus aids'
+  },
+  
+  // ReMotion Talk
+  'ReMotionTalk': { 
+    icon: MessageCircle, 
+    color: 'bg-blue-600', 
+    accent: 'text-blue-100',
+    gradient: 'from-blue-600 to-indigo-600',
+    category: 'communication',
+    description: 'Modern calling and messaging app - Simple. Secure. Seamless.'
+  },
+  
+  // ReMotion Meet
+  'ReMotionMeet': { 
+    icon: Video, 
+    color: 'bg-green-600', 
+    accent: 'text-green-100',
+    gradient: 'from-green-600 to-emerald-600',
+    category: 'communication',
+    description: 'Professional video conferencing with AI assistance and collaboration tools'
   }
 };
 
@@ -233,6 +283,9 @@ const getIconComponent = (iconName: string) => {
     'Code': Code,
     'FileEdit': FileEdit,
     'Hammer': Hammer,
+    'Calculator': Calculator,
+    'Camera': Camera,
+    'Timer': Timer,
     // Add fallback for any missing icons
     'default': Package
   };
@@ -242,21 +295,12 @@ const getIconComponent = (iconName: string) => {
 
 const getIconConfig = (componentName: string) => {
   // First try to get config by component name
-  if (ICON_CONFIG[componentName]) {
-    return ICON_CONFIG[componentName];
+  if (ICON_CONFIG[componentName as keyof typeof ICON_CONFIG]) {
+    return ICON_CONFIG[componentName as keyof typeof ICON_CONFIG];
   }
   
   // Fallback to default
   return ICON_CONFIG['default'];
-};
-const CATEGORY_COLORS = {
-  therapy: 'border-blue-300 bg-blue-50',
-  ai: 'border-purple-300 bg-purple-50',
-  tools: 'border-orange-300 bg-orange-50',
-  creative: 'border-pink-300 bg-pink-50',
-  wellness: 'border-rose-300 bg-rose-50',
-  system: 'border-slate-300 bg-slate-50',
-  other: 'border-gray-300 bg-gray-50'
 };
 
 interface DesktopIconProps {
@@ -270,13 +314,12 @@ export const DesktopIcon: React.FC<DesktopIconProps> = ({
   isFirstTime = false, 
   showTooltip = true 
 }) => {
-  const { selectIcon, clearSelection, appearance } = useOSStore();
+  const { selectIcon, appearance } = useOSStore();
   const { openWindow } = useWindowStore();
   
   // Get icon configuration
   const config = getIconConfig(icon.component || 'default');
   const IconComponent = config.icon;
-  const categoryColor = CATEGORY_COLORS[config.category as keyof typeof CATEGORY_COLORS];
 
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -291,6 +334,8 @@ export const DesktopIcon: React.FC<DesktopIconProps> = ({
         component: icon.component,
         isMinimized: false,
         isMaximized: false,
+        isFullScreen: false,
+        isPoppedOut: false,
         position: { x: 100, y: 100 },
         size: { width: 800, height: 600 },
       });

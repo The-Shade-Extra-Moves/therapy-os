@@ -13,6 +13,11 @@ import {
   Wifi,
   Volume2,
   Grid3X3,
+  Calculator,
+  Camera,
+  Timer,
+  MessageCircle,
+  Video,
   Bell,
   Activity,
   Folder,
@@ -82,6 +87,11 @@ const getWindowIcon = (component: string) => {
     TaskManager: Activity,
     FileExplorer: Folder,
     AccessibilityPanel: Settings,
+    CalculatorApp: Calculator,
+    CameraApp: Camera,
+    TimeManagementApp: Timer,
+    ReMotionTalk: MessageCircle,
+    ReMotionMeet: Video,
   };
   return iconMap[component] || FileText;
 };
